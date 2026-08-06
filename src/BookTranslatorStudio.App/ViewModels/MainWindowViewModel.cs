@@ -37,7 +37,10 @@ public sealed class MainWindowViewModel : ObservableObject
     private bool _hasUnsavedChanges;
     private string _sessionApiKey = string.Empty;
     private CancellationTokenSource? _translationCancellation;
+    private bool _cancelRequested;
     private readonly SemaphoreSlim _saveLock = new(1, 1);
+    private DateTime _translationStartedUtc;
+    private int _translationStartingCompletedCount;
 
     public MainWindowViewModel()
     {
@@ -72,7 +75,11 @@ public sealed class MainWindowViewModel : ObservableObject
             _ => CanStartTranslation());
         PauseTranslationCommand = new RelayCommand(
             _ => PauseTranslation(),
-            _ => IsTranslating);
+            _ => IsTranslating || IsBusy);
+
+        CancelTranslationCommand = new RelayCommand(
+            _ => CancelTranslation(),
+            _ => IsTranslating || IsBusy);
         AddEngineProfileCommand = new RelayCommand(
             _ => AddEngineProfile(),
             _ => Project is not null);
@@ -91,6 +98,7 @@ public sealed class MainWindowViewModel : ObservableObject
     public ICommand SaveProjectAsCommand { get; }
     public ICommand StartTranslationCommand { get; }
     public ICommand PauseTranslationCommand { get; }
+    public ICommand CancelTranslationCommand { get; }
     public ICommand AddEngineProfileCommand { get; }
     public ICommand RemoveEngineProfileCommand { get; }
     public ICommand ResetFailedCommand { get; }
@@ -602,13 +610,29 @@ public sealed class MainWindowViewModel : ObservableObject
             return;
         }
 
+        _translationCancellation?.Dispose();
+        _translationCancellation = new CancellationTokenSource();
+        _cancelRequested = false;
+
         try
         {
             IsBusy = true;
 
             await _localRuntime.EnsureReadyAsync(
                 message => StatusMessage = message,
-                CancellationToken.None);
+                _translationCancellation.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            IsBusy = false;
+            IsTranslating = false;
+            IsPaused = !_cancelRequested;
+
+            StatusMessage = _cancelRequested
+                ? "Proceso cancelado. El progreso terminado se conservó."
+                : "Proceso pausado. El progreso terminado se conservó.";
+
+            return;
         }
         catch (Exception exception)
         {
@@ -633,12 +657,12 @@ public sealed class MainWindowViewModel : ObservableObject
             return;
         }
 
-        _translationCancellation?.Dispose();
-        _translationCancellation = new CancellationTokenSource();
-
         IsTranslating = true;
         IsBusy = true;
         IsPaused = false;
+        _translationStartedUtc = DateTime.UtcNow;
+        _translationStartingCompletedCount =
+            Project.TranslatedBlockCount;
         StatusMessage =
             "Iniciando el motor y enviando el primer bloque...";
 
@@ -668,7 +692,7 @@ public sealed class MainWindowViewModel : ObservableObject
                     TranslationInstruction,
                     profile,
                     string.Empty),
-                Math.Max(1, Project.Translation.ConcurrentRequests),
+                1,
                 1,
                 Math.Max(0, Project.Translation.RetryDelaySeconds),
                 async block =>
@@ -683,10 +707,37 @@ public sealed class MainWindowViewModel : ObservableObject
                             SelectedBlock = block;
                             RefreshBlockList();
                             RefreshMetrics();
+                            var completedThisRun =
+                                Math.Max(
+                                    1,
+                                    Project.TranslatedBlockCount -
+                                    _translationStartingCompletedCount);
+
+                            var elapsed =
+                                DateTime.UtcNow -
+                                _translationStartedUtc;
+
+                            var secondsPerBlock =
+                                elapsed.TotalSeconds /
+                                completedThisRun;
+
+                            var remaining =
+                                Math.Max(
+                                    0,
+                                    Project.BlockCount -
+                                    Project.TranslatedBlockCount);
+
+                            var eta =
+                                TimeSpan.FromSeconds(
+                                    secondsPerBlock * remaining);
+
                             StatusMessage =
                                 $"Procesados: " +
                                 $"{Project.TranslatedBlockCount:N0} de " +
-                                $"{Project.BlockCount:N0}.";
+                                $"{Project.BlockCount:N0} · " +
+                                $"{secondsPerBlock:N0} s/bloque · " +
+                                $"restante aprox. " +
+                                $"{FormatDuration(eta)}.";
                         });
 
                     await AutoSaveAsync();
@@ -746,9 +797,12 @@ public sealed class MainWindowViewModel : ObservableObject
         }
         catch (OperationCanceledException)
         {
-            IsPaused = true;
-            StatusMessage =
-                "Traducción pausada. El progreso fue guardado.";
+            IsPaused = !_cancelRequested;
+
+            StatusMessage = _cancelRequested
+                ? "Traducción cancelada. El progreso terminado fue guardado."
+                : "Traducción pausada. El progreso fue guardado.";
+
             await AutoSaveAsync();
         }
         finally
@@ -757,6 +811,21 @@ public sealed class MainWindowViewModel : ObservableObject
             IsBusy = false;
             RefreshMetrics();
         }
+    }
+
+    private static string FormatDuration(TimeSpan duration)
+    {
+        if (duration.TotalHours >= 1)
+        {
+            return $"{(int)duration.TotalHours} h {duration.Minutes} min";
+        }
+
+        if (duration.TotalMinutes >= 1)
+        {
+            return $"{(int)duration.TotalMinutes} min";
+        }
+
+        return $"{Math.Max(1, (int)duration.TotalSeconds)} s";
     }
 
     private static string BuildRecoveryPath(string sourcePdfPath)
@@ -813,7 +882,16 @@ public sealed class MainWindowViewModel : ObservableObject
 
     private void PauseTranslation()
     {
-        StatusMessage = "Pausando solicitudes activas...";
+        _cancelRequested = false;
+        StatusMessage = "Pausando el proceso...";
+        _translationCancellation?.Cancel();
+    }
+
+    private void CancelTranslation()
+    {
+        _cancelRequested = true;
+        IsPaused = false;
+        StatusMessage = "Cancelando el proceso...";
         _translationCancellation?.Cancel();
     }
 
@@ -1064,6 +1142,7 @@ public sealed class MainWindowViewModel : ObservableObject
                      SaveProjectAsCommand,
                      StartTranslationCommand,
                      PauseTranslationCommand,
+                     CancelTranslationCommand,
                      AddEngineProfileCommand,
                      RemoveEngineProfileCommand,
                      ResetFailedCommand

@@ -97,10 +97,16 @@
                                 Command="{Binding StartTranslationCommand}"
                                 Content="Traducir / continuar"/>
 
-                        <Button Width="120"
+                        <Button Margin="0,0,12,0"
+                                Width="120"
                                 Padding="18,11"
                                 Command="{Binding PauseTranslationCommand}"
                                 Content="Pausar"/>
+
+                        <Button Width="120"
+                                Padding="18,11"
+                                Command="{Binding CancelTranslationCommand}"
+                                Content="Cancelar"/>
                     </StackPanel>
                 </StackPanel>
             </Border>

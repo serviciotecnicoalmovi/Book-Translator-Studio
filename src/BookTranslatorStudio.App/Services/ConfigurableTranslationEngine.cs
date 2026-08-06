@@ -169,9 +169,27 @@ public sealed class ConfigurableTranslationEngine : ITranslationEngine
                     model = request.Profile.Model,
                     prompt = BuildPrompt(request),
                     stream = false,
+
+                    // Mantiene el modelo cargado durante todo el libro.
+                    keep_alive = -1,
+
                     options = new
                     {
-                        temperature = request.Profile.Temperature
+                        temperature = 0.0,
+
+                        // Un libro normal no necesita el contexto máximo
+                        // de 128K para traducir un bloque.
+                        num_ctx = CalculateContextSize(request.Text),
+
+                        // Evita generaciones excesivas o explicaciones.
+                        num_predict = CalculateOutputTokens(request.Text),
+
+                        // Lotes mayores reducen la sobrecarga en CPU/GPU.
+                        num_batch = 512,
+
+                        top_k = 20,
+                        top_p = 0.9,
+                        repeat_penalty = 1.05
                     }
                 }),
 
@@ -197,14 +215,58 @@ public sealed class ConfigurableTranslationEngine : ITranslationEngine
 
     private static string BuildPrompt(TranslationRequest request)
     {
-        var source = request.SourceCode == "auto"
-            ? "el idioma detectado automáticamente"
+        var sourceName = request.SourceCode == "auto"
+            ? "the automatically detected language"
             : request.SourceName;
 
+        var sourceCode = request.SourceCode == "auto"
+            ? "auto"
+            : request.SourceCode;
+
+        var targetName = string.IsNullOrWhiteSpace(
+            request.TargetName)
+            ? request.TargetCode
+            : request.TargetName;
+
+        // Formato esperado por TranslateGemma.
         return
-            $"Traduce desde {source} hacia {request.TargetName}.\n" +
-            $"{request.Instruction}\n\n" +
+            $"You are a professional {sourceName} ({sourceCode}) " +
+            $"to {targetName} translator. " +
+            $"Your goal is to accurately convey the meaning and nuances " +
+            $"of the original text while adhering to the target language " +
+            $"grammar, vocabulary, and cultural sensitivities. " +
+            $"Produce only the translation, without explanations or " +
+            $"commentary. Preserve paragraphs, headings, lists, numbers, " +
+            $"citations and names.\n\n" +
             request.Text;
+    }
+
+    private static int CalculateContextSize(string text)
+    {
+        var estimatedTokens = Math.Max(256, text.Length / 3);
+
+        if (estimatedTokens <= 1024)
+        {
+            return 2048;
+        }
+
+        if (estimatedTokens <= 3072)
+        {
+            return 4096;
+        }
+
+        return 8192;
+    }
+
+    private static int CalculateOutputTokens(string text)
+    {
+        var estimatedInputTokens = Math.Max(64, text.Length / 3);
+
+        // La traducción puede crecer, pero no debe multiplicarse sin control.
+        return Math.Clamp(
+            (int)(estimatedInputTokens * 1.6),
+            256,
+            8192);
     }
 
     private static string ReplaceTokens(
