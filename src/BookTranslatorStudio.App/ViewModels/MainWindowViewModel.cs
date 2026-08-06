@@ -1,3 +1,4 @@
+using System.IO;
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
@@ -9,77 +10,155 @@ using Microsoft.Win32;
 namespace BookTranslatorStudio.ViewModels;
 
 /// <summary>
-/// Coordina la selección, lectura y previsualización del contenido PDF.
+/// Gestiona el ciclo completo: importar, preparar, editar, guardar y abrir.
 /// </summary>
 public sealed class MainWindowViewModel : ObservableObject
 {
     private readonly IPdfInspectionService _pdfInspectionService;
+    private readonly IBookPreparationService _bookPreparationService;
+    private readonly IBookProjectService _bookProjectService;
     private readonly IApplicationLogger _logger;
 
-    private PdfDocumentInfo? _selectedDocument;
-    private PdfPageContent? _selectedPage;
+    private BookProject? _project;
+    private BookSection? _selectedSection;
+    private BookBlock? _selectedBlock;
+    private string? _projectFilePath;
     private string _statusMessage =
-        "Selecciona un libro PDF para comenzar.";
-    private bool _isDocumentLoaded;
+        "Importa un PDF o abre un proyecto existente.";
     private bool _isBusy;
+    private bool _hasUnsavedChanges;
 
     public MainWindowViewModel()
-        : this(new PdfInspectionService(), new FileApplicationLogger())
+        : this(
+            new PdfInspectionService(),
+            new BookPreparationService(),
+            new BookProjectService(),
+            new FileApplicationLogger())
     {
     }
 
     internal MainWindowViewModel(
         IPdfInspectionService pdfInspectionService,
+        IBookPreparationService bookPreparationService,
+        IBookProjectService bookProjectService,
         IApplicationLogger logger)
     {
         _pdfInspectionService = pdfInspectionService;
+        _bookPreparationService = bookPreparationService;
+        _bookProjectService = bookProjectService;
         _logger = logger;
 
-        Pages = new ObservableCollection<PdfPageContent>();
+        Sections = [];
+        Blocks = [];
 
-        SelectPdfCommand = new RelayCommand(
-            async _ => await SelectPdfAsync(),
+        ImportPdfCommand = new RelayCommand(
+            async _ => await ImportPdfAsync(),
             _ => !IsBusy);
 
-        ClearSelectionCommand = new RelayCommand(
-            _ => ClearSelection(),
-            _ => IsDocumentLoaded && !IsBusy);
+        OpenProjectCommand = new RelayCommand(
+            async _ => await OpenProjectAsync(),
+            _ => !IsBusy);
+
+        SaveProjectCommand = new RelayCommand(
+            async _ => await SaveProjectAsync(false),
+            _ => Project is not null && !IsBusy);
+
+        SaveProjectAsCommand = new RelayCommand(
+            async _ => await SaveProjectAsync(true),
+            _ => Project is not null && !IsBusy);
     }
 
-    public ICommand SelectPdfCommand { get; }
+    public ICommand ImportPdfCommand { get; }
 
-    public ICommand ClearSelectionCommand { get; }
+    public ICommand OpenProjectCommand { get; }
 
-    public ObservableCollection<PdfPageContent> Pages { get; }
+    public ICommand SaveProjectCommand { get; }
 
-    public PdfDocumentInfo? SelectedDocument
+    public ICommand SaveProjectAsCommand { get; }
+
+    public ObservableCollection<BookSection> Sections { get; }
+
+    public ObservableCollection<BookBlock> Blocks { get; }
+
+    public BookProject? Project
     {
-        get => _selectedDocument;
-        private set => SetProperty(ref _selectedDocument, value);
+        get => _project;
+        private set
+        {
+            if (SetProperty(ref _project, value))
+            {
+                OnPropertyChanged(nameof(HasProject));
+                RaiseCommandStates();
+            }
+        }
     }
 
-    public PdfPageContent? SelectedPage
+    public bool HasProject => Project is not null;
+
+    public BookSection? SelectedSection
     {
-        get => _selectedPage;
-        set => SetProperty(ref _selectedPage, value);
+        get => _selectedSection;
+        set
+        {
+            if (SetProperty(ref _selectedSection, value))
+            {
+                LoadBlocks(value);
+            }
+        }
+    }
+
+    public BookBlock? SelectedBlock
+    {
+        get => _selectedBlock;
+        set
+        {
+            if (SetProperty(ref _selectedBlock, value))
+            {
+                OnPropertyChanged(nameof(EditableOriginalText));
+                OnPropertyChanged(nameof(EditableTranslatedText));
+            }
+        }
+    }
+
+    public string EditableOriginalText
+    {
+        get => SelectedBlock?.OriginalText ?? string.Empty;
+        set
+        {
+            if (SelectedBlock is null ||
+                SelectedBlock.OriginalText == value)
+            {
+                return;
+            }
+
+            SelectedBlock.OriginalText = value;
+            MarkChanged();
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(Project));
+        }
+    }
+
+    public string EditableTranslatedText
+    {
+        get => SelectedBlock?.TranslatedText ?? string.Empty;
+        set
+        {
+            if (SelectedBlock is null ||
+                SelectedBlock.TranslatedText == value)
+            {
+                return;
+            }
+
+            SelectedBlock.TranslatedText = value;
+            MarkChanged();
+            OnPropertyChanged();
+        }
     }
 
     public string StatusMessage
     {
         get => _statusMessage;
         private set => SetProperty(ref _statusMessage, value);
-    }
-
-    public bool IsDocumentLoaded
-    {
-        get => _isDocumentLoaded;
-        private set
-        {
-            if (SetProperty(ref _isDocumentLoaded, value))
-            {
-                RaiseCommandStates();
-            }
-        }
     }
 
     public bool IsBusy
@@ -94,65 +173,53 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
-    private async Task SelectPdfAsync()
+    public bool HasUnsavedChanges
+    {
+        get => _hasUnsavedChanges;
+        private set => SetProperty(ref _hasUnsavedChanges, value);
+    }
+
+    private async Task ImportPdfAsync()
     {
         var dialog = new OpenFileDialog
         {
-            Title = "Seleccionar libro PDF",
+            Title = "Importar libro PDF",
             Filter = "Documentos PDF (*.pdf)|*.pdf",
             CheckFileExists = true,
-            CheckPathExists = true,
             Multiselect = false
         };
 
         if (dialog.ShowDialog() != true)
         {
-            StatusMessage = "Selección cancelada.";
             return;
         }
 
         try
         {
             IsBusy = true;
-            StatusMessage = "Analizando páginas y extrayendo texto...";
+            StatusMessage =
+                "Importando y preparando el libro completo...";
 
             var document = await _pdfInspectionService
                 .InspectAsync(dialog.FileName);
 
-            SelectedDocument = document;
+            var project = _bookPreparationService.Prepare(document);
 
-            Pages.Clear();
-            foreach (var page in document.Pages)
-            {
-                Pages.Add(page);
-            }
+            LoadProject(project, null);
+            HasUnsavedChanges = true;
 
-            SelectedPage = Pages.FirstOrDefault();
-            IsDocumentLoaded = true;
-
-            StatusMessage = document.RequiresOcr
-                ? $"Documento cargado: {document.PageCount:N0} páginas. No se detectó texto; necesitará OCR."
-                : $"Documento cargado: {document.PageCount:N0} páginas, {document.PagesWithText:N0} con texto.";
+            StatusMessage =
+                $"Libro preparado: {project.Sections.Count:N0} secciones, " +
+                $"{project.BlockCount:N0} bloques y {project.WordCount:N0} palabras.";
 
             _logger.Info(
-                $"PDF analizado: {document.FullPath}. " +
-                $"Páginas: {document.PageCount}. " +
-                $"Caracteres: {document.TotalCharacterCount}.");
+                $"Libro preparado: {dialog.FileName}. " +
+                $"Secciones: {project.Sections.Count}. " +
+                $"Bloques: {project.BlockCount}.");
         }
         catch (Exception exception)
         {
-            _logger.Error(
-                "No fue posible analizar el PDF.",
-                exception);
-
-            ClearSelection();
-            StatusMessage = "No fue posible analizar el documento.";
-
-            MessageBox.Show(
-                BuildUserErrorMessage(exception),
-                "No se pudo abrir el PDF",
-                MessageBoxButton.OK,
-                MessageBoxImage.Warning);
+            HandleError("No fue posible importar el libro.", exception);
         }
         finally
         {
@@ -160,36 +227,168 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
-    private void ClearSelection()
+    private async Task OpenProjectAsync()
     {
-        SelectedDocument = null;
-        SelectedPage = null;
-        Pages.Clear();
-        IsDocumentLoaded = false;
-        StatusMessage = "Selecciona un libro PDF para comenzar.";
-        _logger.Info("Selección de PDF eliminada.");
+        var dialog = new OpenFileDialog
+        {
+            Title = "Abrir proyecto",
+            Filter =
+                $"Proyecto Book Translator Studio (*{BookProject.FileExtension})|" +
+                $"*{BookProject.FileExtension}",
+            CheckFileExists = true,
+            Multiselect = false
+        };
+
+        if (dialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+        try
+        {
+            IsBusy = true;
+            StatusMessage = "Abriendo proyecto...";
+
+            var project = await _bookProjectService
+                .OpenAsync(dialog.FileName);
+
+            LoadProject(project, dialog.FileName);
+            HasUnsavedChanges = false;
+
+            StatusMessage =
+                $"Proyecto abierto: {project.Name}. " +
+                $"{project.BlockCount:N0} bloques listos.";
+
+            _logger.Info($"Proyecto abierto: {dialog.FileName}");
+        }
+        catch (Exception exception)
+        {
+            HandleError("No fue posible abrir el proyecto.", exception);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private async Task SaveProjectAsync(bool forceNewPath)
+    {
+        if (Project is null)
+        {
+            return;
+        }
+
+        var destination = _projectFilePath;
+
+        if (forceNewPath || string.IsNullOrWhiteSpace(destination))
+        {
+            var dialog = new SaveFileDialog
+            {
+                Title = "Guardar proyecto",
+                Filter =
+                    $"Proyecto Book Translator Studio (*{BookProject.FileExtension})|" +
+                    $"*{BookProject.FileExtension}",
+                DefaultExt = BookProject.FileExtension,
+                AddExtension = true,
+                FileName = Project.Name
+            };
+
+            if (dialog.ShowDialog() != true)
+            {
+                return;
+            }
+
+            destination = dialog.FileName;
+        }
+
+        try
+        {
+            IsBusy = true;
+            StatusMessage = "Guardando proyecto...";
+
+            await _bookProjectService.SaveAsync(
+                Project,
+                destination);
+
+            _projectFilePath = destination;
+            HasUnsavedChanges = false;
+
+            StatusMessage =
+                $"Proyecto guardado: {Path.GetFileName(destination)}";
+
+            _logger.Info($"Proyecto guardado: {destination}");
+        }
+        catch (Exception exception)
+        {
+            HandleError("No fue posible guardar el proyecto.", exception);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private void LoadProject(BookProject project, string? filePath)
+    {
+        Project = project;
+        _projectFilePath = filePath;
+
+        Sections.Clear();
+        foreach (var section in project.Sections)
+        {
+            Sections.Add(section);
+        }
+
+        SelectedSection = Sections.FirstOrDefault();
+        SelectedBlock = Blocks.FirstOrDefault();
+
+        OnPropertyChanged(nameof(Project));
+    }
+
+    private void LoadBlocks(BookSection? section)
+    {
+        Blocks.Clear();
+
+        if (section is not null)
+        {
+            foreach (var block in section.Blocks)
+            {
+                Blocks.Add(block);
+            }
+        }
+
+        SelectedBlock = Blocks.FirstOrDefault();
+    }
+
+    private void MarkChanged()
+    {
+        HasUnsavedChanges = true;
+        StatusMessage = "Proyecto modificado. Hay cambios sin guardar.";
     }
 
     private void RaiseCommandStates()
     {
-        if (SelectPdfCommand is RelayCommand selectCommand)
+        foreach (var command in new[]
+                 {
+                     ImportPdfCommand,
+                     OpenProjectCommand,
+                     SaveProjectCommand,
+                     SaveProjectAsCommand
+                 }.OfType<RelayCommand>())
         {
-            selectCommand.RaiseCanExecuteChanged();
-        }
-
-        if (ClearSelectionCommand is RelayCommand clearCommand)
-        {
-            clearCommand.RaiseCanExecuteChanged();
+            command.RaiseCanExecuteChanged();
         }
     }
 
-    private static string BuildUserErrorMessage(Exception exception) =>
-        exception switch
-        {
-            UnauthorizedAccessException =>
-                "Windows no permitió acceder al archivo seleccionado.",
-            InvalidOperationException =>
-                "El documento está cifrado, dañado o utiliza una estructura PDF no compatible.",
-            _ => exception.Message
-        };
+    private void HandleError(string message, Exception exception)
+    {
+        _logger.Error(message, exception);
+        StatusMessage = message;
+
+        MessageBox.Show(
+            exception.Message,
+            "Book Translator Studio",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+    }
 }

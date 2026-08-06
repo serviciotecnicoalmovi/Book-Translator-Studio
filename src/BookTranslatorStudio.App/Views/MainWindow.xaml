@@ -3,25 +3,22 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:viewModels="clr-namespace:BookTranslatorStudio.ViewModels"
         Title="Book Translator Studio"
-        Width="1100"
-        Height="720"
-        MinWidth="900"
-        MinHeight="600"
-        WindowState="Maximized"
-        WindowStartupLocation="CenterScreen">
+        MinWidth="1100"
+        MinHeight="680"
+        WindowState="Maximized">
     <Window.DataContext>
         <viewModels:MainWindowViewModel/>
     </Window.DataContext>
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="72"/>
+            <RowDefinition Height="74"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="38"/>
+            <RowDefinition Height="40"/>
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0"
-                Background="{StaticResource SurfaceBrush}"
+                Background="White"
                 BorderBrush="{StaticResource BorderBrush}"
                 BorderThickness="0,0,0,1">
             <Grid Margin="28,0">
@@ -31,272 +28,209 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock FontSize="22"
+                    <TextBlock FontSize="23"
                                FontWeight="SemiBold"
                                Text="Book Translator Studio"/>
                     <TextBlock Margin="0,3,0,0"
                                Foreground="{StaticResource MutedTextBrush}"
-                               Text="Extracción y traducción profesional de libros PDF"/>
+                               Text="Preparación integral de libros para traducción"/>
                 </StackPanel>
 
-                <Border Grid.Column="1"
-                        VerticalAlignment="Center"
-                        Background="#EEF4FF"
-                        CornerRadius="12"
-                        Padding="12,5">
-                    <TextBlock Foreground="{StaticResource PrimaryBrush}"
-                               FontWeight="SemiBold"
-                               Text="v0.2.0"/>
-                </Border>
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center">
+                    <Button Margin="0,0,8,0"
+                            Padding="14,8"
+                            Command="{Binding ImportPdfCommand}"
+                            Content="Importar PDF"/>
+                    <Button Margin="0,0,8,0"
+                            Padding="14,8"
+                            Command="{Binding OpenProjectCommand}"
+                            Content="Abrir proyecto"/>
+                    <Button Margin="0,0,8,0"
+                            Padding="14,8"
+                            Command="{Binding SaveProjectCommand}"
+                            Content="Guardar"/>
+                    <Button Padding="14,8"
+                            Command="{Binding SaveProjectAsCommand}"
+                            Content="Guardar como"/>
+                    <Border Margin="16,0,0,0"
+                            Background="#EEF4FF"
+                            CornerRadius="12"
+                            Padding="12,5">
+                        <TextBlock Foreground="{StaticResource PrimaryBrush}"
+                                   FontWeight="SemiBold"
+                                   Text="v0.3.0"/>
+                    </Border>
+                </StackPanel>
             </Grid>
         </Border>
 
-        <Grid Grid.Row="1" Margin="28">
+        <Grid Grid.Row="1" Margin="24">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="310"/>
-                <ColumnDefinition Width="20"/>
+                <ColumnDefinition Width="14"/>
+                <ColumnDefinition Width="330"/>
+                <ColumnDefinition Width="14"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
             <Border Grid.Column="0"
-                    Background="{StaticResource SurfaceBrush}"
+                    Background="White"
                     BorderBrush="{StaticResource BorderBrush}"
                     BorderThickness="1"
-                    CornerRadius="10"
-                    Padding="22">
+                    CornerRadius="9"
+                    Padding="16">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="12"/>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="12"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
                     <TextBlock FontSize="17"
                                FontWeight="SemiBold"
-                               Text="Documento de origen"/>
+                               Text="Estructura del libro"/>
 
-                    <TextBlock Grid.Row="1"
-                               Margin="0,7,0,20"
-                               Foreground="{StaticResource MutedTextBrush}"
-                               TextWrapping="Wrap"
-                               Text="Carga el libro para contar sus páginas y extraer su texto real."/>
-
-                    <StackPanel Grid.Row="2">
-                        <Button Command="{Binding SelectPdfCommand}"
-                                Style="{StaticResource PrimaryButtonStyle}"
-                                Content="Seleccionar PDF"/>
-                        <Button Margin="0,10,0,0"
-                                Padding="18,9"
-                                Command="{Binding ClearSelectionCommand}"
-                                Content="Quitar selección"/>
-                    </StackPanel>
-
-                    <StackPanel Grid.Row="3" Margin="0,22,0,18">
-                        <Separator Margin="0,0,0,18"/>
-                        <TextBlock FontWeight="SemiBold" Text="Estado"/>
-                        <TextBlock Margin="0,7,0,0"
-                                   Foreground="{StaticResource MutedTextBrush}"
-                                   TextWrapping="Wrap"
-                                   Text="{Binding StatusMessage}"/>
-                        <ProgressBar Margin="0,14,0,0"
-                                     Height="5"
-                                     IsIndeterminate="True">
-                            <ProgressBar.Style>
-                                <Style TargetType="ProgressBar">
-                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsBusy}" Value="True">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </ProgressBar.Style>
-                        </ProgressBar>
-                    </StackPanel>
+                    <Border Grid.Row="2"
+                            Background="#F9FAFB"
+                            CornerRadius="7"
+                            Padding="12">
+                        <StackPanel>
+                            <TextBlock FontWeight="SemiBold"
+                                       Text="{Binding Project.Name}"/>
+                            <TextBlock Margin="0,5,0,0"
+                                       Foreground="{StaticResource MutedTextBrush}">
+                                <Run Text="{Binding Project.SourcePageCount}"/>
+                                <Run Text=" páginas · "/>
+                                <Run Text="{Binding Project.WordCount, StringFormat=N0}"/>
+                                <Run Text=" palabras"/>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
 
                     <ListBox Grid.Row="4"
-                             ItemsSource="{Binding Pages}"
-                             SelectedItem="{Binding SelectedPage}"
-                             BorderBrush="{StaticResource BorderBrush}"
-                             DisplayMemberPath="DisplayName">
-                        <ListBox.Style>
-                            <Style TargetType="ListBox">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsDocumentLoaded}" Value="True">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ListBox.Style>
-                    </ListBox>
+                             ItemsSource="{Binding Sections}"
+                             SelectedItem="{Binding SelectedSection}"
+                             DisplayMemberPath="DisplayName"
+                             BorderBrush="{StaticResource BorderBrush}"/>
                 </Grid>
             </Border>
 
             <Border Grid.Column="2"
-                    Background="{StaticResource SurfaceBrush}"
+                    Background="White"
                     BorderBrush="{StaticResource BorderBrush}"
                     BorderThickness="1"
-                    CornerRadius="10"
-                    Padding="26">
+                    CornerRadius="9"
+                    Padding="16">
                 <Grid>
-                    <Grid x:Name="EmptyState">
-                        <Grid.Style>
-                            <Style TargetType="Grid">
-                                <Setter Property="Visibility" Value="Visible"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsDocumentLoaded}" Value="True">
-                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Grid.Style>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="12"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
-                        <StackPanel HorizontalAlignment="Center"
-                                    VerticalAlignment="Center"
-                                    MaxWidth="440">
-                            <Border Width="76"
-                                    Height="76"
-                                    Background="#EEF4FF"
-                                    CornerRadius="38">
-                                <TextBlock HorizontalAlignment="Center"
-                                           VerticalAlignment="Center"
-                                           FontSize="29"
-                                           Foreground="{StaticResource PrimaryBrush}"
-                                           Text="PDF"/>
-                            </Border>
-                            <TextBlock Margin="0,22,0,0"
-                                       HorizontalAlignment="Center"
-                                       FontSize="21"
-                                       FontWeight="SemiBold"
-                                       Text="Ningún libro seleccionado"/>
-                            <TextBlock Margin="0,9,0,0"
-                                       TextAlignment="Center"
-                                       TextWrapping="Wrap"
-                                       Foreground="{StaticResource MutedTextBrush}"
-                                       Text="Selecciona un PDF para extraer su texto página por página."/>
-                        </StackPanel>
-                    </Grid>
+                    <TextBlock FontSize="17"
+                               FontWeight="SemiBold"
+                               Text="{Binding SelectedSection.Title}"/>
 
-                    <Grid x:Name="DocumentState">
-                        <Grid.Style>
-                            <Style TargetType="Grid">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsDocumentLoaded}" Value="True">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Grid.Style>
+                    <ListBox Grid.Row="2"
+                             ItemsSource="{Binding Blocks}"
+                             SelectedItem="{Binding SelectedBlock}"
+                             DisplayMemberPath="DisplayName"
+                             BorderBrush="{StaticResource BorderBrush}"/>
+                </Grid>
+            </Border>
 
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="16"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="18"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
+            <Border Grid.Column="4"
+                    Background="White"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1"
+                    CornerRadius="9"
+                    Padding="18">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="12"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="14"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
-                        <StackPanel>
-                            <TextBlock Foreground="{StaticResource PrimaryBrush}"
-                                       FontWeight="SemiBold"
-                                       Text="DOCUMENTO EXTRAÍDO"/>
-                            <TextBlock Margin="0,7,0,0"
-                                       FontSize="23"
-                                       FontWeight="SemiBold"
-                                       TextWrapping="Wrap"
-                                       Text="{Binding SelectedDocument.FileName}"/>
-                        </StackPanel>
+                    <TextBlock FontSize="17"
+                               FontWeight="SemiBold"
+                               Text="{Binding SelectedBlock.DisplayName}"/>
 
-                        <Border Grid.Row="2"
-                                Background="#F9FAFB"
-                                CornerRadius="8"
-                                Padding="16">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="28"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="28"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="28"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
+                    <GroupBox Grid.Row="2" Header="Texto original">
+                        <TextBox Margin="8"
+                                 Text="{Binding EditableOriginalText, UpdateSourceTrigger=PropertyChanged}"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 VerticalScrollBarVisibility="Auto"
+                                 BorderThickness="0"/>
+                    </GroupBox>
 
-                                <StackPanel>
-                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Páginas"/>
-                                    <TextBlock FontSize="18"
-                                               FontWeight="SemiBold"
-                                               Text="{Binding SelectedDocument.PageCount}"/>
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="2">
-                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Con texto"/>
-                                    <TextBlock FontSize="18"
-                                               FontWeight="SemiBold"
-                                               Text="{Binding SelectedDocument.PagesWithText}"/>
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="4">
-                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Caracteres"/>
-                                    <TextBlock FontSize="18"
-                                               FontWeight="SemiBold"
-                                               Text="{Binding SelectedDocument.TotalCharacterCount, StringFormat=N0}"/>
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="6">
-                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Tamaño"/>
-                                    <TextBlock FontSize="18"
-                                               FontWeight="SemiBold"
-                                               Text="{Binding SelectedDocument.FormattedSize}"/>
-                                </StackPanel>
-                            </Grid>
-                        </Border>
-
-                        <Border Grid.Row="4"
-                                Background="#F9FAFB"
-                                CornerRadius="8"
-                                Padding="18">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="12"/>
-                                    <RowDefinition Height="*"/>
-                                </Grid.RowDefinitions>
-
-                                <TextBlock FontSize="17"
-                                           FontWeight="SemiBold"
-                                           Text="{Binding SelectedPage.DisplayName}"/>
-
-                                <TextBox Grid.Row="2"
-                                         Text="{Binding SelectedPage.Text}"
-                                         IsReadOnly="True"
-                                         AcceptsReturn="True"
-                                         TextWrapping="Wrap"
-                                         VerticalScrollBarVisibility="Auto"
-                                         HorizontalScrollBarVisibility="Disabled"
-                                         BorderThickness="0"
-                                         Background="Transparent"
-                                         FontFamily="Segoe UI"
-                                         FontSize="15"/>
-                            </Grid>
-                        </Border>
-                    </Grid>
+                    <GroupBox Grid.Row="4" Header="Traducción">
+                        <TextBox Margin="8"
+                                 Text="{Binding EditableTranslatedText, UpdateSourceTrigger=PropertyChanged}"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 VerticalScrollBarVisibility="Auto"
+                                 BorderThickness="0"/>
+                    </GroupBox>
                 </Grid>
             </Border>
         </Grid>
 
         <Border Grid.Row="2"
-                Background="{StaticResource SurfaceBrush}"
+                Background="White"
                 BorderBrush="{StaticResource BorderBrush}"
                 BorderThickness="0,1,0,0">
-            <TextBlock Margin="28,0"
-                       VerticalAlignment="Center"
-                       Foreground="{StaticResource MutedTextBrush}"
-                       Text="Book Translator Studio · .NET 10 · WPF · PdfPig"/>
+            <Grid Margin="28,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock VerticalAlignment="Center"
+                           Foreground="{StaticResource MutedTextBrush}"
+                           Text="{Binding StatusMessage}"/>
+
+                <StackPanel Grid.Column="1"
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center">
+                    <ProgressBar Width="120"
+                                 Height="5"
+                                 IsIndeterminate="True">
+                        <ProgressBar.Style>
+                            <Style TargetType="ProgressBar">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ProgressBar.Style>
+                    </ProgressBar>
+                    <TextBlock Margin="16,0,0,0"
+                               Foreground="#B42318"
+                               FontWeight="SemiBold">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Text" Value=""/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding HasUnsavedChanges}" Value="True">
+                                        <Setter Property="Text" Value="Cambios sin guardar"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </StackPanel>
+            </Grid>
         </Border>
     </Grid>
 </Window>
