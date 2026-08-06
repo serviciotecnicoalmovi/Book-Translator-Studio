@@ -1,0 +1,18 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{60DC8134-EBA5-43B8-BCC9-BB4BC16C2548}") = "BookTranslatorStudio.App", "src\BookTranslatorStudio.App\BookTranslatorStudio.App.csproj", "{2F2B5E3C-2D97-4DEB-A311-5AB4D7ED9D12}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2F2B5E3C-2D97-4DEB-A311-5AB4D7ED9D12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2F2B5E3C-2D97-4DEB-A311-5AB4D7ED9D12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2F2B5E3C-2D97-4DEB-A311-5AB4D7ED9D12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2F2B5E3C-2D97-4DEB-A311-5AB4D7ED9D12}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
