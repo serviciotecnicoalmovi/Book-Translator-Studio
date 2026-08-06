@@ -1,3 +1,4 @@
+﻿using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using BookTranslatorStudio.Models;
@@ -5,8 +6,8 @@ using BookTranslatorStudio.Models;
 namespace BookTranslatorStudio.Services;
 
 /// <summary>
-/// Valida el archivo PDF y realiza un conteo inicial de objetos de página.
-/// Esta etapa no extrae texto; esa capacidad se añadirá en la siguiente versión.
+/// Valida el archivo PDF y realiza un conteo inicial de objetos de pÃ¡gina.
+/// Esta etapa no extrae texto; esa capacidad se aÃ±adirÃ¡ en la siguiente versiÃ³n.
 /// </summary>
 public sealed partial class PdfInspectionService : IPdfInspectionService
 {
@@ -29,7 +30,7 @@ public sealed partial class PdfInspectionService : IPdfInspectionService
                 StringComparison.OrdinalIgnoreCase))
         {
             throw new InvalidDataException(
-                "El archivo seleccionado no tiene extensión PDF.");
+                "El archivo seleccionado no tiene extensiÃ³n PDF.");
         }
 
         var fileInfo = new FileInfo(filePath);
@@ -60,7 +61,7 @@ public sealed partial class PdfInspectionService : IPdfInspectionService
             !header.SequenceEqual("%PDF-"u8))
         {
             throw new InvalidDataException(
-                "El archivo no contiene un encabezado PDF válido.");
+                "El archivo no contiene un encabezado PDF vÃ¡lido.");
         }
     }
 
@@ -73,7 +74,7 @@ public sealed partial class PdfInspectionService : IPdfInspectionService
 
         var content = Encoding.Latin1.GetString(memory.ToArray());
 
-        // Excluye /Type /Pages y cuenta únicamente objetos /Type /Page.
+        // Excluye /Type /Pages y cuenta Ãºnicamente objetos /Type /Page.
         var count = PageObjectRegex().Matches(content).Count;
         return Math.Max(count, 1);
     }
@@ -83,3 +84,4 @@ public sealed partial class PdfInspectionService : IPdfInspectionService
         RegexOptions.CultureInvariant)]
     private static partial Regex PageObjectRegex();
 }
+

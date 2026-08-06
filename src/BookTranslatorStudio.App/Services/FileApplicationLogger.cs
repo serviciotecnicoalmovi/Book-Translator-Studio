@@ -1,3 +1,4 @@
+﻿using System.IO;
 using System.Text;
 
 namespace BookTranslatorStudio.Services;
@@ -48,7 +49,8 @@ public sealed class FileApplicationLogger : IApplicationLogger
         }
         catch
         {
-            // El registro nunca debe cerrar la aplicación.
+            // El registro nunca debe cerrar la aplicaciÃ³n.
         }
     }
 }
+
