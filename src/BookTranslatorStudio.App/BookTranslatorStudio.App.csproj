@@ -4,6 +4,8 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
     <AssemblyName>BookTranslatorStudio</AssemblyName>
     <RootNamespace>BookTranslatorStudio</RootNamespace>
     <Platforms>AnyCPU;x64</Platforms>
