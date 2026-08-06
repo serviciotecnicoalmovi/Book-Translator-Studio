@@ -1,4 +1,4 @@
-<Window x:Class="BookTranslatorStudio.Views.MainWindow"
+﻿<Window x:Class="BookTranslatorStudio.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:viewModels="clr-namespace:BookTranslatorStudio.ViewModels"
@@ -295,7 +295,7 @@
                         <ProgressBar Margin="0,6,0,0"
                                      Height="10"
                                      Maximum="100"
-                                     Value="{Binding TranslationProgress}"/>
+                                     Value="{Binding TranslationProgress, Mode=OneWay}"/>
                     </StackPanel>
 
                     <ListBox Grid.Row="4"
@@ -405,3 +405,4 @@
         </Border>
     </Grid>
 </Window>
+
