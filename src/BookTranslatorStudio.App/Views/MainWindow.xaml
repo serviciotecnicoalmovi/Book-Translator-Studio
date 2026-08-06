@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:viewModels="clr-namespace:BookTranslatorStudio.ViewModels"
         Title="Book Translator Studio"
-        MinWidth="1100"
-        MinHeight="680"
+        MinWidth="1320"
+        MinHeight="760"
         WindowState="Maximized">
     <Window.DataContext>
         <viewModels:MainWindowViewModel/>
@@ -12,16 +12,17 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="74"/>
+            <RowDefinition Height="70"/>
+            <RowDefinition Height="245"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="40"/>
+            <RowDefinition Height="42"/>
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0"
                 Background="White"
                 BorderBrush="{StaticResource BorderBrush}"
                 BorderThickness="0,0,0,1">
-            <Grid Margin="28,0">
+            <Grid Margin="24,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
@@ -33,45 +34,231 @@
                                Text="Book Translator Studio"/>
                     <TextBlock Margin="0,3,0,0"
                                Foreground="{StaticResource MutedTextBrush}"
-                               Text="Preparación integral de libros para traducción"/>
+                               Text="Traducción completa sin límites internos"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1"
                             Orientation="Horizontal"
                             VerticalAlignment="Center">
-                    <Button Margin="0,0,8,0"
-                            Padding="14,8"
+                    <Button Margin="0,0,7,0"
+                            Padding="13,8"
                             Command="{Binding ImportPdfCommand}"
                             Content="Importar PDF"/>
-                    <Button Margin="0,0,8,0"
-                            Padding="14,8"
+                    <Button Margin="0,0,7,0"
+                            Padding="13,8"
                             Command="{Binding OpenProjectCommand}"
                             Content="Abrir proyecto"/>
-                    <Button Margin="0,0,8,0"
-                            Padding="14,8"
+                    <Button Margin="0,0,7,0"
+                            Padding="13,8"
                             Command="{Binding SaveProjectCommand}"
                             Content="Guardar"/>
-                    <Button Padding="14,8"
+                    <Button Padding="13,8"
                             Command="{Binding SaveProjectAsCommand}"
                             Content="Guardar como"/>
-                    <Border Margin="16,0,0,0"
+                    <Border Margin="14,0,0,0"
                             Background="#EEF4FF"
                             CornerRadius="12"
                             Padding="12,5">
                         <TextBlock Foreground="{StaticResource PrimaryBrush}"
                                    FontWeight="SemiBold"
-                                   Text="v0.3.0"/>
+                                   Text="v0.4.0"/>
                     </Border>
                 </StackPanel>
             </Grid>
         </Border>
 
-        <Grid Grid.Row="1" Margin="24">
+        <Border Grid.Row="1"
+                Margin="20,14,20,0"
+                Padding="14"
+                Background="White"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="9">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="270"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="12"/>
+                    <ColumnDefinition Width="300"/>
+                </Grid.ColumnDefinitions>
+
+                <GroupBox Header="Perfil del motor">
+                    <Grid Margin="8">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="8"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="8"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="8"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <ComboBox ItemsSource="{Binding EngineProfiles}"
+                                  SelectedItem="{Binding SelectedEngineProfile}"/>
+
+                        <StackPanel Grid.Row="2"
+                                    Orientation="Horizontal">
+                            <Button Margin="0,0,7,0"
+                                    Padding="10,6"
+                                    Command="{Binding AddEngineProfileCommand}"
+                                    Content="Añadir"/>
+                            <Button Padding="10,6"
+                                    Command="{Binding RemoveEngineProfileCommand}"
+                                    Content="Eliminar"/>
+                        </StackPanel>
+
+                        <ComboBox Grid.Row="4"
+                                  ItemsSource="{Binding AvailableProtocols}"
+                                  SelectedItem="{Binding SelectedEngineProfile.Protocol}"/>
+
+                        <CheckBox Grid.Row="6"
+                                  IsChecked="{Binding SelectedEngineProfile.RememberApiKey}"
+                                  Content="Guardar clave en el proyecto"/>
+                    </Grid>
+                </GroupBox>
+
+                <GroupBox Grid.Column="2" Header="Conexión y contrato">
+                    <Grid Margin="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="160"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="230"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="8"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="8"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel>
+                            <TextBlock Text="Nombre"/>
+                            <TextBox Margin="0,4,0,0"
+                                     Text="{Binding SelectedEngineProfile.Name, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="Modelo"/>
+                            <TextBox Margin="0,4,0,0"
+                                     Text="{Binding SelectedEngineProfile.Model, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="4">
+                            <TextBlock Text="URL"/>
+                            <TextBox Margin="0,4,0,0"
+                                     Text="{Binding SelectedEngineProfile.Endpoint, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="2"
+                                    Grid.ColumnSpan="3">
+                            <TextBlock Text="Encabezados personalizados (uno por línea)"/>
+                            <TextBox Margin="0,4,0,0"
+                                     Height="45"
+                                     AcceptsReturn="True"
+                                     Text="{Binding SelectedEngineProfile.Headers, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="2"
+                                    Grid.Column="4">
+                            <TextBlock Text="Clave API de sesión"/>
+                            <PasswordBox Margin="0,4,0,0"
+                                         PasswordChanged="ApiKeyBox_OnPasswordChanged"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="4"
+                                    Grid.ColumnSpan="3">
+                            <TextBlock Text="Plantilla JSON genérica"/>
+                            <TextBox Margin="0,4,0,0"
+                                     Height="45"
+                                     AcceptsReturn="True"
+                                     Text="{Binding SelectedEngineProfile.RequestTemplate, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="4"
+                                    Grid.Column="4">
+                            <TextBlock Text="Ruta JSON de respuesta"/>
+                            <TextBox Margin="0,4,0,0"
+                                     Text="{Binding SelectedEngineProfile.ResponseJsonPath, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
+
+                <GroupBox Grid.Column="4" Header="Procesamiento">
+                    <Grid Margin="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="10"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="8"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="8"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="8"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.ColumnSpan="2">
+                            <TextBlock Text="Alcance"/>
+                            <ComboBox Margin="0,4,0,0"
+                                      ItemsSource="{Binding AvailableScopes}"
+                                      SelectedItem="{Binding SelectedScope}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="2">
+                            <TextBlock Text="Concurrencia"/>
+                            <TextBox Margin="0,4,0,0"
+                                     Text="{Binding ConcurrentRequestsText, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="2" Grid.Column="2">
+                            <TextBlock Text="Reintentos (0 = sin fin)"/>
+                            <TextBox Margin="0,4,0,0"
+                                     Text="{Binding RetryCountText, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="4">
+                            <TextBlock Text="Espera entre intentos"/>
+                            <TextBox Margin="0,4,0,0"
+                                     Text="{Binding RetryDelayText, UpdateSourceTrigger=PropertyChanged}"/>
+                        </StackPanel>
+
+                        <Button Grid.Row="4"
+                                Grid.Column="2"
+                                Margin="0,18,0,0"
+                                Command="{Binding ResetFailedCommand}"
+                                Content="Reactivar errores"/>
+
+                        <StackPanel Grid.Row="6"
+                                    Grid.ColumnSpan="3"
+                                    Orientation="Horizontal">
+                            <Button Margin="0,0,7,0"
+                                    Padding="14,8"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Command="{Binding StartTranslationCommand}"
+                                    Content="Traducir / continuar"/>
+                            <Button Padding="14,8"
+                                    Command="{Binding PauseTranslationCommand}"
+                                    Content="Pausar"/>
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="2" Margin="20,12,20,12">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="310"/>
-                <ColumnDefinition Width="14"/>
-                <ColumnDefinition Width="330"/>
-                <ColumnDefinition Width="14"/>
+                <ColumnDefinition Width="300"/>
+                <ColumnDefinition Width="12"/>
+                <ColumnDefinition Width="340"/>
+                <ColumnDefinition Width="12"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
@@ -80,42 +267,41 @@
                     BorderBrush="{StaticResource BorderBrush}"
                     BorderThickness="1"
                     CornerRadius="9"
-                    Padding="16">
+                    Padding="14">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="12"/>
+                        <RowDefinition Height="10"/>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="12"/>
+                        <RowDefinition Height="10"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
                     <TextBlock FontSize="17"
                                FontWeight="SemiBold"
-                               Text="Estructura del libro"/>
+                               Text="Proyecto"/>
 
-                    <Border Grid.Row="2"
-                            Background="#F9FAFB"
-                            CornerRadius="7"
-                            Padding="12">
-                        <StackPanel>
-                            <TextBlock FontWeight="SemiBold"
-                                       Text="{Binding Project.Name}"/>
-                            <TextBlock Margin="0,5,0,0"
-                                       Foreground="{StaticResource MutedTextBrush}">
-                                <Run Text="{Binding Project.SourcePageCount}"/>
-                                <Run Text=" páginas · "/>
-                                <Run Text="{Binding Project.WordCount, Mode=OneWay, StringFormat=N0}"/>
-                                <Run Text=" palabras"/>
-                            </TextBlock>
-                        </StackPanel>
-                    </Border>
+                    <StackPanel Grid.Row="2">
+                        <TextBlock FontWeight="SemiBold"
+                                   Text="{Binding Project.Name, Mode=OneWay}"/>
+                        <TextBlock Foreground="{StaticResource MutedTextBrush}">
+                            <Run Text="{Binding Project.SourcePageCount, Mode=OneWay}"/>
+                            <Run Text=" páginas · "/>
+                            <Run Text="{Binding Project.WordCount, Mode=OneWay, StringFormat=N0}"/>
+                            <Run Text=" palabras"/>
+                        </TextBlock>
+                        <TextBlock Margin="0,5,0,0"
+                                   Text="{Binding TranslationSummary}"/>
+                        <ProgressBar Margin="0,6,0,0"
+                                     Height="10"
+                                     Maximum="100"
+                                     Value="{Binding TranslationProgress}"/>
+                    </StackPanel>
 
                     <ListBox Grid.Row="4"
                              ItemsSource="{Binding Sections}"
                              SelectedItem="{Binding SelectedSection}"
-                             DisplayMemberPath="DisplayName"
-                             BorderBrush="{StaticResource BorderBrush}"/>
+                             DisplayMemberPath="DisplayName"/>
                 </Grid>
             </Border>
 
@@ -124,23 +310,22 @@
                     BorderBrush="{StaticResource BorderBrush}"
                     BorderThickness="1"
                     CornerRadius="9"
-                    Padding="16">
+                    Padding="14">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="12"/>
+                        <RowDefinition Height="10"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
                     <TextBlock FontSize="17"
                                FontWeight="SemiBold"
-                               Text="{Binding SelectedSection.Title}"/>
+                               Text="{Binding SelectedSection.Title, Mode=OneWay}"/>
 
                     <ListBox Grid.Row="2"
                              ItemsSource="{Binding Blocks}"
                              SelectedItem="{Binding SelectedBlock}"
-                             DisplayMemberPath="DisplayName"
-                             BorderBrush="{StaticResource BorderBrush}"/>
+                             DisplayMemberPath="DisplayName"/>
                 </Grid>
             </Border>
 
@@ -149,19 +334,19 @@
                     BorderBrush="{StaticResource BorderBrush}"
                     BorderThickness="1"
                     CornerRadius="9"
-                    Padding="18">
+                    Padding="16">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="12"/>
+                        <RowDefinition Height="10"/>
                         <RowDefinition Height="*"/>
-                        <RowDefinition Height="14"/>
+                        <RowDefinition Height="12"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
                     <TextBlock FontSize="17"
                                FontWeight="SemiBold"
-                               Text="{Binding SelectedBlock.DisplayName}"/>
+                               Text="{Binding SelectedBlock.DisplayName, Mode=OneWay}"/>
 
                     <GroupBox Grid.Row="2" Header="Texto original">
                         <TextBox Margin="8"
@@ -184,11 +369,11 @@
             </Border>
         </Grid>
 
-        <Border Grid.Row="2"
+        <Border Grid.Row="3"
                 Background="White"
                 BorderBrush="{StaticResource BorderBrush}"
                 BorderThickness="0,1,0,0">
-            <Grid Margin="28,0">
+            <Grid Margin="24,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
@@ -198,41 +383,25 @@
                            Foreground="{StaticResource MutedTextBrush}"
                            Text="{Binding StatusMessage}"/>
 
-                <StackPanel Grid.Column="1"
-                            Orientation="Horizontal"
-                            VerticalAlignment="Center">
-                    <ProgressBar Width="120"
-                                 Height="5"
-                                 IsIndeterminate="True">
-                        <ProgressBar.Style>
-                            <Style TargetType="ProgressBar">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsBusy}" Value="True">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ProgressBar.Style>
-                    </ProgressBar>
-                    <TextBlock Margin="16,0,0,0"
-                               Foreground="#B42318"
-                               FontWeight="SemiBold">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Text" Value=""/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding HasUnsavedChanges}" Value="True">
-                                        <Setter Property="Text" Value="Cambios sin guardar"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
-                </StackPanel>
+                <TextBlock Grid.Column="1"
+                           VerticalAlignment="Center"
+                           Foreground="#B42318"
+                           FontWeight="SemiBold">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Text" Value=""/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasUnsavedChanges}" Value="True">
+                                    <Setter Property="Text" Value="Cambios sin guardar"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsPaused}" Value="True">
+                                    <Setter Property="Text" Value="Pausado · progreso conservado"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
             </Grid>
         </Border>
     </Grid>
 </Window>
-
-
