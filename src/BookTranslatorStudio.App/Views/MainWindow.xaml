@@ -33,7 +33,7 @@
                                Text="Book Translator Studio"/>
                     <TextBlock Margin="0,3,0,0"
                                Foreground="{StaticResource MutedTextBrush}"
-                               Text="PreparaciÃ³n integral de libros para traducciÃ³n"/>
+                               Text="Preparación integral de libros para traducción"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1"
@@ -104,7 +104,7 @@
                             <TextBlock Margin="0,5,0,0"
                                        Foreground="{StaticResource MutedTextBrush}">
                                 <Run Text="{Binding Project.SourcePageCount}"/>
-                                <Run Text=" pÃ¡ginas Â· "/>
+                                <Run Text=" páginas Â· "/>
                                 <Run Text="{Binding Project.WordCount, Mode=OneWay, StringFormat=N0}"/>
                                 <Run Text=" palabras"/>
                             </TextBlock>
@@ -172,7 +172,7 @@
                                  BorderThickness="0"/>
                     </GroupBox>
 
-                    <GroupBox Grid.Row="4" Header="TraducciÃ³n">
+                    <GroupBox Grid.Row="4" Header="traducción">
                         <TextBox Margin="8"
                                  Text="{Binding EditableTranslatedText, UpdateSourceTrigger=PropertyChanged}"
                                  AcceptsReturn="True"
@@ -234,4 +234,5 @@
         </Border>
     </Grid>
 </Window>
+
 
