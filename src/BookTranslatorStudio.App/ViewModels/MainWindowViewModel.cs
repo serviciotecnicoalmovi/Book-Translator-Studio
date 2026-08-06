@@ -5,6 +5,7 @@ using System.Windows.Input;
 using BookTranslatorStudio.Commands;
 using BookTranslatorStudio.Models;
 using BookTranslatorStudio.Services;
+using BookTranslatorStudio.Views;
 using Microsoft.Win32;
 
 namespace BookTranslatorStudio.ViewModels;
@@ -485,6 +486,12 @@ public sealed class MainWindowViewModel : ObservableObject
             return;
         }
 
+        if (!EnsureTranslationConfiguration())
+        {
+            StatusMessage = "Traducción cancelada.";
+            return;
+        }
+
         if (!await EnsureSavedAsync()) return;
 
         var blocks = ResolveScope();
@@ -569,6 +576,57 @@ public sealed class MainWindowViewModel : ObservableObject
             IsBusy = false;
             RefreshMetrics();
         }
+    }
+
+    private bool EnsureTranslationConfiguration()
+    {
+        if (Project is null ||
+            SelectedEngineProfile is null)
+        {
+            return false;
+        }
+
+        var apiKeyMissing =
+            SelectedEngineProfile.Protocol ==
+                TranslationProtocol.OpenAiChatCompletions &&
+            string.IsNullOrWhiteSpace(SessionApiKey) &&
+            string.IsNullOrWhiteSpace(
+                SelectedEngineProfile.ApiKey);
+
+        var modelMissing =
+            SelectedEngineProfile.Protocol is
+                TranslationProtocol.OpenAiChatCompletions or
+                TranslationProtocol.OllamaGenerate &&
+            string.IsNullOrWhiteSpace(
+                SelectedEngineProfile.Model);
+
+        var endpointMissing =
+            string.IsNullOrWhiteSpace(
+                SelectedEngineProfile.Endpoint);
+
+        if (!apiKeyMissing &&
+            !modelMissing &&
+            !endpointMissing)
+        {
+            return true;
+        }
+
+        var dialog = new TranslationSetupWindow(
+            Project,
+            SelectedEngineProfile,
+            SessionApiKey)
+        {
+            Owner = Application.Current.MainWindow
+        };
+
+        if (dialog.ShowDialog() != true)
+        {
+            return false;
+        }
+
+        SessionApiKey = dialog.SessionApiKey;
+        HasUnsavedChanges = true;
+        return true;
     }
 
     private void PauseTranslation()
