@@ -22,6 +22,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private readonly IBookProjectService _bookProjectService;
     private readonly IApplicationLogger _logger;
     private readonly TranslatedPdfExporter _pdfExporter;
+    private readonly LocalTranslationRuntimeService _localRuntime;
 
     private BookProject? _project;
     private BookSection? _selectedSection;
@@ -45,6 +46,7 @@ public sealed class MainWindowViewModel : ObservableObject
         _bookProjectService = new BookProjectService();
         _logger = new FileApplicationLogger();
         _pdfExporter = new TranslatedPdfExporter();
+        _localRuntime = new LocalTranslationRuntimeService();
 
         Sections = [];
         Blocks = [];
@@ -76,7 +78,7 @@ public sealed class MainWindowViewModel : ObservableObject
             _ => Project is not null);
         RemoveEngineProfileCommand = new RelayCommand(
             _ => RemoveEngineProfile(),
-            _ => Project is not null && SelectedEngineProfile is not null);
+            _ => Project is not null);
         ResetFailedCommand = new RelayCommand(
             _ => ResetFailedBlocks(),
             _ => Project is not null);
@@ -595,16 +597,30 @@ public sealed class MainWindowViewModel : ObservableObject
 
     private async Task StartTranslationAsync()
     {
-        if (Project is null ||
-            SelectedEngineProfile is null)
+        if (Project is null)
         {
             return;
         }
 
-        if (!EnsureTranslationConfiguration())
+        try
         {
-            StatusMessage = "Traducción cancelada.";
+            IsBusy = true;
+
+            await _localRuntime.EnsureReadyAsync(
+                message => StatusMessage = message,
+                CancellationToken.None);
+        }
+        catch (Exception exception)
+        {
+            IsBusy = false;
+            HandleError(
+                "No fue posible preparar el motor local.",
+                exception);
             return;
+        }
+        finally
+        {
+            IsBusy = false;
         }
 
         if (!await EnsureSavedAsync()) return;
@@ -615,15 +631,6 @@ public sealed class MainWindowViewModel : ObservableObject
             StatusMessage =
                 "No hay bloques aplicables al alcance seleccionado.";
             return;
-        }
-
-        if (SelectedEngineProfile.RememberApiKey)
-        {
-            SelectedEngineProfile.ApiKey = SessionApiKey;
-        }
-        else
-        {
-            SelectedEngineProfile.ApiKey = string.Empty;
         }
 
         _translationCancellation?.Dispose();
@@ -637,7 +644,16 @@ public sealed class MainWindowViewModel : ObservableObject
 
         try
         {
-            var profile = SelectedEngineProfile.Clone();
+            var profile = new EngineProfile
+            {
+                Name = "TranslateGemma local",
+                Protocol = TranslationProtocol.OllamaGenerate,
+                Endpoint = "http://localhost:11434/api/generate",
+                Model = "translategemma:4b",
+                TimeoutSeconds = 0,
+                Temperature = 0.1
+            };
+
             var engine = new ConfigurableTranslationEngine();
             var coordinator = new TranslationCoordinator(engine);
 
@@ -651,7 +667,7 @@ public sealed class MainWindowViewModel : ObservableObject
                     TargetLanguageName,
                     TranslationInstruction,
                     profile,
-                    SessionApiKey),
+                    string.Empty),
                 Math.Max(1, Project.Translation.ConcurrentRequests),
                 1,
                 Math.Max(0, Project.Translation.RetryDelaySeconds),
@@ -742,65 +758,6 @@ public sealed class MainWindowViewModel : ObservableObject
             RefreshMetrics();
         }
     }
-
-    private bool EnsureTranslationConfiguration()
-    {
-        if (Project is null ||
-            SelectedEngineProfile is null)
-        {
-            return false;
-        }
-
-        var apiKeyMissing =
-            SelectedEngineProfile.Protocol ==
-                TranslationProtocol.OpenAiChatCompletions &&
-            string.IsNullOrWhiteSpace(SessionApiKey) &&
-            string.IsNullOrWhiteSpace(
-                SelectedEngineProfile.ApiKey);
-
-        var modelMissing =
-            SelectedEngineProfile.Protocol is
-                TranslationProtocol.OpenAiChatCompletions or
-                TranslationProtocol.OllamaGenerate &&
-            string.IsNullOrWhiteSpace(
-                SelectedEngineProfile.Model);
-
-        var endpointMissing =
-            string.IsNullOrWhiteSpace(
-                SelectedEngineProfile.Endpoint);
-
-        var firstConfiguration =
-            !Project.Translation.IsConfigured;
-
-        if (!firstConfiguration &&
-            !apiKeyMissing &&
-            !modelMissing &&
-            !endpointMissing)
-        {
-            return true;
-        }
-
-        var dialog = new TranslationSetupWindow(
-            Project,
-            SelectedEngineProfile,
-            SessionApiKey)
-        {
-            Owner = Application.Current.MainWindow
-        };
-
-        if (dialog.ShowDialog() != true)
-        {
-            return false;
-        }
-
-        SessionApiKey = dialog.SessionApiKey;
-        Project.Translation.IsConfigured = true;
-        HasUnsavedChanges = true;
-        StatusMessage =
-            "Configuración guardada. Iniciando traducción...";
-        return true;
-    }
-
 
     private static string BuildRecoveryPath(string sourcePdfPath)
     {
@@ -1067,7 +1024,6 @@ public sealed class MainWindowViewModel : ObservableObject
 
     private bool CanStartTranslation() =>
         Project is not null &&
-        SelectedEngineProfile is not null &&
         !IsTranslating;
 
     private void RefreshBlockList()

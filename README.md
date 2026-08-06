@@ -1,16 +1,14 @@
-# Book Translator Studio v0.4.0
+# Book Translator Studio v0.4.0 local
 
-Flujo visible:
+Flujo:
 
-1. Abrir un archivo PDF.
-2. Traducir o continuar.
-3. Pausar cuando sea necesario.
-4. Generar automáticamente `nombre_traducido.pdf`.
+1. Abrir PDF.
+2. Pulsar Traducir / continuar.
+3. La aplicación instala automáticamente Ollama si falta.
+4. Descarga automáticamente TranslateGemma 4B una sola vez.
+5. Traduce localmente y conserva el progreso.
+6. Genera `nombre_traducido.pdf`.
 
-El archivo `.btsproject` se guarda automáticamente en la carpeta de
-recuperación de la aplicación y no es el producto final.
-
-La primera exportación PDF conserva el orden de páginas y bloques, genera
-texto seleccionable y mantiene separada cada página original. La reproducción
-exacta de posiciones, tipografías e imágenes del PDF original corresponde a
-una fase posterior de preservación avanzada del diseño.
+No requiere cuenta, clave API ni pagos. Después de descargar el motor y el
+modelo, la traducción funciona sin conexión. Book Translator Studio no impone
+límites de páginas, palabras, bloques o exportaciones.

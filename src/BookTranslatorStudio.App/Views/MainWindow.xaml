@@ -33,7 +33,7 @@
                                Text="Book Translator Studio"/>
                     <TextBlock Margin="0,4,0,0"
                                Foreground="{StaticResource MutedTextBrush}"
-                               Text="Abrir PDF, traducir y generar PDF"/>
+                               Text="Traducción local sin cuentas, claves ni pagos"/>
                 </StackPanel>
 
                 <Border Grid.Column="1"
