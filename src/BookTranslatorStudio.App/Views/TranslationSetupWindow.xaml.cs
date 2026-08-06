@@ -72,6 +72,7 @@ public partial class TranslationSetupWindow : Window
                 ? "es"
                 : TargetLanguageBox.Text.Trim();
 
+        _project.Translation.IsConfigured = true;
         DialogResult = true;
     }
 }

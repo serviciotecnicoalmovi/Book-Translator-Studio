@@ -7,6 +7,8 @@ namespace BookTranslatorStudio.Models;
 /// </summary>
 public sealed class TranslationConfiguration
 {
+    public bool IsConfigured { get; set; }
+
     public string SourceLanguageCode { get; set; } = "auto";
 
     public string SourceLanguageName { get; set; } =

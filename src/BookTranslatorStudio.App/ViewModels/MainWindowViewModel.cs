@@ -627,6 +627,8 @@ public sealed class MainWindowViewModel : ObservableObject
         IsTranslating = true;
         IsBusy = true;
         IsPaused = false;
+        StatusMessage =
+            "Iniciando el motor y enviando el primer bloque...";
 
         try
         {
@@ -714,7 +716,11 @@ public sealed class MainWindowViewModel : ObservableObject
             string.IsNullOrWhiteSpace(
                 SelectedEngineProfile.Endpoint);
 
-        if (!apiKeyMissing &&
+        var firstConfiguration =
+            !Project.Translation.IsConfigured;
+
+        if (!firstConfiguration &&
+            !apiKeyMissing &&
             !modelMissing &&
             !endpointMissing)
         {
@@ -735,7 +741,10 @@ public sealed class MainWindowViewModel : ObservableObject
         }
 
         SessionApiKey = dialog.SessionApiKey;
+        Project.Translation.IsConfigured = true;
         HasUnsavedChanges = true;
+        StatusMessage =
+            "Configuración guardada. Iniciando traducción...";
         return true;
     }
 
