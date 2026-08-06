@@ -7,7 +7,7 @@
         Height="720"
         MinWidth="900"
         MinHeight="600"
-	WindowState="Maximized"
+        WindowState="Maximized"
         WindowStartupLocation="CenterScreen">
     <Window.DataContext>
         <viewModels:MainWindowViewModel/>
@@ -36,7 +36,7 @@
                                Text="Book Translator Studio"/>
                     <TextBlock Margin="0,3,0,0"
                                Foreground="{StaticResource MutedTextBrush}"
-                               Text="Traducción profesional de libros PDF"/>
+                               Text="Extracción y traducción profesional de libros PDF"/>
                 </StackPanel>
 
                 <Border Grid.Column="1"
@@ -46,14 +46,14 @@
                         Padding="12,5">
                     <TextBlock Foreground="{StaticResource PrimaryBrush}"
                                FontWeight="SemiBold"
-                               Text="v0.1.0"/>
+                               Text="v0.2.0"/>
                 </Border>
             </Grid>
         </Border>
 
         <Grid Grid.Row="1" Margin="28">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="320"/>
+                <ColumnDefinition Width="310"/>
                 <ColumnDefinition Width="20"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
@@ -63,34 +63,76 @@
                     BorderBrush="{StaticResource BorderBrush}"
                     BorderThickness="1"
                     CornerRadius="10"
-                    Padding="24">
-                <StackPanel>
+                    Padding="22">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
                     <TextBlock FontSize="17"
                                FontWeight="SemiBold"
                                Text="Documento de origen"/>
-                    <TextBlock Margin="0,7,0,22"
+
+                    <TextBlock Grid.Row="1"
+                               Margin="0,7,0,20"
                                Foreground="{StaticResource MutedTextBrush}"
                                TextWrapping="Wrap"
-                               Text="Carga el libro que deseas traducir. En esta etapa se validará el archivo y su información básica."/>
+                               Text="Carga el libro para contar sus páginas y extraer su texto real."/>
 
-                    <Button Command="{Binding SelectPdfCommand}"
-                            Style="{StaticResource PrimaryButtonStyle}"
-                            Content="Seleccionar PDF"/>
+                    <StackPanel Grid.Row="2">
+                        <Button Command="{Binding SelectPdfCommand}"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Content="Seleccionar PDF"/>
+                        <Button Margin="0,10,0,0"
+                                Padding="18,9"
+                                Command="{Binding ClearSelectionCommand}"
+                                Content="Quitar selección"/>
+                    </StackPanel>
 
-                    <Button Margin="0,10,0,0"
-                            Padding="18,9"
-                            Command="{Binding ClearSelectionCommand}"
-                            Content="Quitar selección"/>
+                    <StackPanel Grid.Row="3" Margin="0,22,0,18">
+                        <Separator Margin="0,0,0,18"/>
+                        <TextBlock FontWeight="SemiBold" Text="Estado"/>
+                        <TextBlock Margin="0,7,0,0"
+                                   Foreground="{StaticResource MutedTextBrush}"
+                                   TextWrapping="Wrap"
+                                   Text="{Binding StatusMessage}"/>
+                        <ProgressBar Margin="0,14,0,0"
+                                     Height="5"
+                                     IsIndeterminate="True">
+                            <ProgressBar.Style>
+                                <Style TargetType="ProgressBar">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsBusy}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ProgressBar.Style>
+                        </ProgressBar>
+                    </StackPanel>
 
-                    <Separator Margin="0,24"/>
-
-                    <TextBlock FontWeight="SemiBold"
-                               Text="Estado"/>
-                    <TextBlock Margin="0,7,0,0"
-                               Foreground="{StaticResource MutedTextBrush}"
-                               TextWrapping="Wrap"
-                               Text="{Binding StatusMessage}"/>
-                </StackPanel>
+                    <ListBox Grid.Row="4"
+                             ItemsSource="{Binding Pages}"
+                             SelectedItem="{Binding SelectedPage}"
+                             BorderBrush="{StaticResource BorderBrush}"
+                             DisplayMemberPath="DisplayName">
+                        <ListBox.Style>
+                            <Style TargetType="ListBox">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsDocumentLoaded}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ListBox.Style>
+                    </ListBox>
+                </Grid>
             </Border>
 
             <Border Grid.Column="2"
@@ -98,17 +140,15 @@
                     BorderBrush="{StaticResource BorderBrush}"
                     BorderThickness="1"
                     CornerRadius="10"
-                    Padding="28">
+                    Padding="26">
                 <Grid>
                     <Grid x:Name="EmptyState">
                         <Grid.Style>
                             <Style TargetType="Grid">
                                 <Setter Property="Visibility" Value="Visible"/>
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsDocumentLoaded}"
-                                                 Value="True">
-                                        <Setter Property="Visibility"
-                                                Value="Collapsed"/>
+                                    <DataTrigger Binding="{Binding IsDocumentLoaded}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
@@ -116,7 +156,7 @@
 
                         <StackPanel HorizontalAlignment="Center"
                                     VerticalAlignment="Center"
-                                    MaxWidth="420">
+                                    MaxWidth="440">
                             <Border Width="76"
                                     Height="76"
                                     Background="#EEF4FF"
@@ -136,7 +176,7 @@
                                        TextAlignment="Center"
                                        TextWrapping="Wrap"
                                        Foreground="{StaticResource MutedTextBrush}"
-                                       Text="Selecciona un documento PDF para mostrar su nombre, ubicación, tamaño y cantidad de páginas detectadas."/>
+                                       Text="Selecciona un PDF para extraer su texto página por página."/>
                         </StackPanel>
                     </Grid>
 
@@ -145,10 +185,8 @@
                             <Style TargetType="Grid">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsDocumentLoaded}"
-                                                 Value="True">
-                                        <Setter Property="Visibility"
-                                                Value="Visible"/>
+                                    <DataTrigger Binding="{Binding IsDocumentLoaded}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
@@ -156,16 +194,18 @@
 
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="20"/>
+                            <RowDefinition Height="16"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="18"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
                         <StackPanel>
                             <TextBlock Foreground="{StaticResource PrimaryBrush}"
                                        FontWeight="SemiBold"
-                                       Text="DOCUMENTO CARGADO"/>
-                            <TextBlock Margin="0,8,0,0"
-                                       FontSize="24"
+                                       Text="DOCUMENTO EXTRAÍDO"/>
+                            <TextBlock Margin="0,7,0,0"
+                                       FontSize="23"
                                        FontWeight="SemiBold"
                                        TextWrapping="Wrap"
                                        Text="{Binding SelectedDocument.FileName}"/>
@@ -174,48 +214,74 @@
                         <Border Grid.Row="2"
                                 Background="#F9FAFB"
                                 CornerRadius="8"
-                                Padding="22">
+                                Padding="16">
                             <Grid>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="150"/>
-                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="28"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="28"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="28"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
+
+                                <StackPanel>
+                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Páginas"/>
+                                    <TextBlock FontSize="18"
+                                               FontWeight="SemiBold"
+                                               Text="{Binding SelectedDocument.PageCount}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Con texto"/>
+                                    <TextBlock FontSize="18"
+                                               FontWeight="SemiBold"
+                                               Text="{Binding SelectedDocument.PagesWithText}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="4">
+                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Caracteres"/>
+                                    <TextBlock FontSize="18"
+                                               FontWeight="SemiBold"
+                                               Text="{Binding SelectedDocument.TotalCharacterCount, StringFormat=N0}"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="6">
+                                    <TextBlock Foreground="{StaticResource MutedTextBrush}" Text="Tamaño"/>
+                                    <TextBlock FontSize="18"
+                                               FontWeight="SemiBold"
+                                               Text="{Binding SelectedDocument.FormattedSize}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <Border Grid.Row="4"
+                                Background="#F9FAFB"
+                                CornerRadius="8"
+                                Padding="18">
+                            <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="18"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="18"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="18"/>
-                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="12"/>
+                                    <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
 
-                                <TextBlock FontWeight="SemiBold" Text="Nombre"/>
-                                <TextBlock Grid.Column="1"
-                                           TextWrapping="Wrap"
-                                           Text="{Binding SelectedDocument.FileName}"/>
-
-                                <TextBlock Grid.Row="2"
+                                <TextBlock FontSize="17"
                                            FontWeight="SemiBold"
-                                           Text="Ubicación"/>
-                                <TextBlock Grid.Row="2"
-                                           Grid.Column="1"
-                                           TextWrapping="Wrap"
-                                           Text="{Binding SelectedDocument.FullPath}"/>
+                                           Text="{Binding SelectedPage.DisplayName}"/>
 
-                                <TextBlock Grid.Row="4"
-                                           FontWeight="SemiBold"
-                                           Text="Tamaño"/>
-                                <TextBlock Grid.Row="4"
-                                           Grid.Column="1"
-                                           Text="{Binding SelectedDocument.FormattedSize}"/>
-
-                                <TextBlock Grid.Row="6"
-                                           FontWeight="SemiBold"
-                                           Text="Páginas detectadas"/>
-                                <TextBlock Grid.Row="6"
-                                           Grid.Column="1"
-                                           Text="{Binding SelectedDocument.DetectedPageCount}"/>
+                                <TextBox Grid.Row="2"
+                                         Text="{Binding SelectedPage.Text}"
+                                         IsReadOnly="True"
+                                         AcceptsReturn="True"
+                                         TextWrapping="Wrap"
+                                         VerticalScrollBarVisibility="Auto"
+                                         HorizontalScrollBarVisibility="Disabled"
+                                         BorderThickness="0"
+                                         Background="Transparent"
+                                         FontFamily="Segoe UI"
+                                         FontSize="15"/>
                             </Grid>
                         </Border>
                     </Grid>
@@ -230,7 +296,7 @@
             <TextBlock Margin="28,0"
                        VerticalAlignment="Center"
                        Foreground="{StaticResource MutedTextBrush}"
-                       Text="Book Translator Studio · .NET 10 · WPF"/>
+                       Text="Book Translator Studio · .NET 10 · WPF · PdfPig"/>
         </Border>
     </Grid>
 </Window>

@@ -1,13 +1,14 @@
 namespace BookTranslatorStudio.Models;
 
 /// <summary>
-/// Información básica obtenida del documento PDF seleccionado.
+/// Información real y contenido textual del documento PDF seleccionado.
 /// </summary>
 public sealed record PdfDocumentInfo(
     string FileName,
     string FullPath,
     long FileSizeBytes,
-    int DetectedPageCount)
+    int PageCount,
+    IReadOnlyList<PdfPageContent> Pages)
 {
     public string FormattedSize =>
         FileSizeBytes switch
@@ -17,4 +18,10 @@ public sealed record PdfDocumentInfo(
             >= 1_024 => $"{FileSizeBytes / 1_024d:N2} KB",
             _ => $"{FileSizeBytes:N0} bytes"
         };
+
+    public int PagesWithText => Pages.Count(page => page.HasText);
+
+    public int TotalCharacterCount => Pages.Sum(page => page.CharacterCount);
+
+    public bool RequiresOcr => PagesWithText == 0;
 }
