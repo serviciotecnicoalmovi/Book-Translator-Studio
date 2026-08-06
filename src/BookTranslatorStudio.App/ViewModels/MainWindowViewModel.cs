@@ -647,9 +647,9 @@ public sealed class MainWindowViewModel : ObservableObject
                     TranslationInstruction,
                     profile,
                     SessionApiKey),
-                Project.Translation.ConcurrentRequests,
-                Project.Translation.RetryCount,
-                Project.Translation.RetryDelaySeconds,
+                Math.Max(1, Project.Translation.ConcurrentRequests),
+                1,
+                Math.Max(0, Project.Translation.RetryDelaySeconds),
                 async block =>
                 {
                     await Application.Current.Dispatcher.InvokeAsync(
@@ -672,8 +672,36 @@ public sealed class MainWindowViewModel : ObservableObject
                 },
                 _translationCancellation.Token);
 
-            StatusMessage =
-                "El alcance seleccionado terminó de procesarse.";
+            var failedBlocks = Project.Sections
+                .SelectMany(section => section.Blocks)
+                .Where(block =>
+                    block.TranslationStatus ==
+                    TranslationBlockStatus.Failed)
+                .OrderBy(block => block.Order)
+                .ToList();
+
+            if (failedBlocks.Count > 0)
+            {
+                Project.Translation.IsConfigured = false;
+
+                var firstFailure = failedBlocks[0];
+                StatusMessage =
+                    $"El motor no inició la traducción: " +
+                    $"{firstFailure.TranslationError}";
+
+                MessageBox.Show(
+                    $"No fue posible traducir el primer bloque.\n\n" +
+                    $"{firstFailure.TranslationError}\n\n" +
+                    "Pulsa Traducir / continuar para corregir la conexión.",
+                    "Motor de traducción",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+            else
+            {
+                StatusMessage =
+                    "La traducción del libro terminó correctamente.";
+            }
         }
         catch (OperationCanceledException)
         {
@@ -756,29 +784,16 @@ public sealed class MainWindowViewModel : ObservableObject
 
     private IReadOnlyList<BookBlock> ResolveScope()
     {
-        if (Project is null) return [];
-
-        var all = Project.Sections
-            .SelectMany(section => section.Blocks)
-            .OrderBy(block => block.Order);
-
-        return SelectedScope switch
+        if (Project is null)
         {
-            TranslationScope.EntireProject =>
-                all.ToList(),
-            TranslationScope.CurrentSection =>
-                SelectedSection?.Blocks
-                    .OrderBy(block => block.Order)
-                    .ToList() ?? [],
-            TranslationScope.CurrentBlock =>
-                SelectedBlock is null ? [] : [SelectedBlock],
-            TranslationScope.FailedBlocks =>
-                all.Where(block =>
-                    block.TranslationStatus ==
-                    TranslationBlockStatus.Failed).ToList(),
-            _ =>
-                all.Where(block => !block.IsTranslated).ToList()
-        };
+            return [];
+        }
+
+        return Project.Sections
+            .SelectMany(section => section.Blocks)
+            .Where(block => !block.IsTranslated)
+            .OrderBy(block => block.Order)
+            .ToList();
     }
 
     private async Task<bool> EnsureSavedAsync()
@@ -937,6 +952,9 @@ public sealed class MainWindowViewModel : ObservableObject
     private static void NormalizeProject(BookProject project)
     {
         project.Translation ??= new TranslationConfiguration();
+        project.Translation.Scope =
+            TranslationScope.PendingBlocks;
+        project.Translation.RetryCount = 1;
 
         if (project.Translation.EngineProfiles.Count == 0)
         {
