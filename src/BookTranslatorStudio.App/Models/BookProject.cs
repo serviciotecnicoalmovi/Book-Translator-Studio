@@ -1,8 +1,5 @@
 namespace BookTranslatorStudio.Models;
 
-/// <summary>
-/// Proyecto persistente que contiene el libro completamente preparado.
-/// </summary>
 public sealed class BookProject
 {
     public const string FileExtension = ".btsproject";
@@ -23,11 +20,23 @@ public sealed class BookProject
 
     public List<BookSection> Sections { get; set; } = [];
 
+    public TranslationConfiguration Translation { get; set; } = new();
+
     public int BlockCount => Sections.Sum(section => section.Blocks.Count);
 
     public int WordCount => Sections.Sum(section => section.WordCount);
 
-    public int CharacterCount =>
+    public int TranslatedBlockCount =>
         Sections.Sum(section =>
-            section.Blocks.Sum(block => block.CharacterCount));
+            section.Blocks.Count(block => block.IsTranslated));
+
+    public int FailedBlockCount =>
+        Sections.Sum(section =>
+            section.Blocks.Count(block =>
+                block.TranslationStatus == TranslationBlockStatus.Failed));
+
+    public double TranslationProgress =>
+        BlockCount == 0
+            ? 0
+            : TranslatedBlockCount * 100d / BlockCount;
 }

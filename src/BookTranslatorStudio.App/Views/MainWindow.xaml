@@ -3,18 +3,18 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:viewModels="clr-namespace:BookTranslatorStudio.ViewModels"
         Title="Book Translator Studio"
-        MinWidth="1100"
-        MinHeight="680"
+        MinWidth="900"
+        MinHeight="560"
         WindowState="Maximized">
     <Window.DataContext>
         <viewModels:MainWindowViewModel/>
     </Window.DataContext>
 
-    <Grid>
+    <Grid Background="#F7F9FC">
         <Grid.RowDefinitions>
-            <RowDefinition Height="74"/>
+            <RowDefinition Height="76"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="40"/>
+            <RowDefinition Height="46"/>
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0"
@@ -28,159 +28,87 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock FontSize="23"
+                    <TextBlock FontSize="24"
                                FontWeight="SemiBold"
                                Text="Book Translator Studio"/>
-                    <TextBlock Margin="0,3,0,0"
+                    <TextBlock Margin="0,4,0,0"
                                Foreground="{StaticResource MutedTextBrush}"
-                               Text="Preparación integral de libros para traducción"/>
+                               Text="Traducción local sin cuentas, claves ni pagos"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="1"
-                            Orientation="Horizontal"
-                            VerticalAlignment="Center">
-                    <Button Margin="0,0,8,0"
-                            Padding="14,8"
-                            Command="{Binding ImportPdfCommand}"
-                            Content="Importar PDF"/>
-                    <Button Margin="0,0,8,0"
-                            Padding="14,8"
-                            Command="{Binding OpenProjectCommand}"
-                            Content="Abrir proyecto"/>
-                    <Button Margin="0,0,8,0"
-                            Padding="14,8"
-                            Command="{Binding SaveProjectCommand}"
-                            Content="Guardar"/>
-                    <Button Padding="14,8"
-                            Command="{Binding SaveProjectAsCommand}"
-                            Content="Guardar como"/>
-                    <Border Margin="16,0,0,0"
-                            Background="#EEF4FF"
-                            CornerRadius="12"
-                            Padding="12,5">
-                        <TextBlock Foreground="{StaticResource PrimaryBrush}"
-                                   FontWeight="SemiBold"
-                                   Text="v0.3.0"/>
-                    </Border>
-                </StackPanel>
+                <Border Grid.Column="1"
+                        VerticalAlignment="Center"
+                        Background="#EEF4FF"
+                        CornerRadius="12"
+                        Padding="12,5">
+                    <TextBlock Foreground="{StaticResource PrimaryBrush}"
+                               FontWeight="SemiBold"
+                               Text="v0.4.0"/>
+                </Border>
             </Grid>
         </Border>
 
-        <Grid Grid.Row="1" Margin="24">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="310"/>
-                <ColumnDefinition Width="14"/>
-                <ColumnDefinition Width="330"/>
-                <ColumnDefinition Width="14"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
-            <Border Grid.Column="0"
-                    Background="White"
+        <Grid Grid.Row="1"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              Width="720">
+            <Border Background="White"
                     BorderBrush="{StaticResource BorderBrush}"
                     BorderThickness="1"
-                    CornerRadius="9"
-                    Padding="16">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="12"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="12"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-
-                    <TextBlock FontSize="17"
+                    CornerRadius="14"
+                    Padding="42">
+                <StackPanel>
+                    <TextBlock HorizontalAlignment="Center"
+                               FontSize="25"
                                FontWeight="SemiBold"
-                               Text="Estructura del libro"/>
+                               Text="{Binding Project.Name, Mode=OneWay, FallbackValue=Libro no seleccionado}"/>
 
-                    <Border Grid.Row="2"
-                            Background="#F9FAFB"
-                            CornerRadius="7"
-                            Padding="12">
-                        <StackPanel>
-                            <TextBlock FontWeight="SemiBold"
-                                       Text="{Binding Project.Name}"/>
-                            <TextBlock Margin="0,5,0,0"
-                                       Foreground="{StaticResource MutedTextBrush}">
-                                <Run Text="{Binding Project.SourcePageCount}"/>
-                                <Run Text=" páginas · "/>
-                                <Run Text="{Binding Project.WordCount, Mode=OneWay, StringFormat=N0}"/>
-                                <Run Text=" palabras"/>
-                            </TextBlock>
-                        </StackPanel>
-                    </Border>
+                    <TextBlock Margin="0,12,0,0"
+                               HorizontalAlignment="Center"
+                               Foreground="{StaticResource MutedTextBrush}"
+                               FontSize="16"
+                               Text="{Binding TranslationSummary}"/>
 
-                    <ListBox Grid.Row="4"
-                             ItemsSource="{Binding Sections}"
-                             SelectedItem="{Binding SelectedSection}"
-                             DisplayMemberPath="DisplayName"
-                             BorderBrush="{StaticResource BorderBrush}"/>
-                </Grid>
-            </Border>
+                    <ProgressBar Margin="0,34,0,0"
+                                 Height="18"
+                                 Minimum="0"
+                                 Maximum="100"
+                                 Value="{Binding TranslationProgress, Mode=OneWay}"/>
 
-            <Border Grid.Column="2"
-                    Background="White"
-                    BorderBrush="{StaticResource BorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="9"
-                    Padding="16">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="12"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-
-                    <TextBlock FontSize="17"
+                    <TextBlock Margin="0,10,0,0"
+                               HorizontalAlignment="Center"
+                               FontSize="18"
                                FontWeight="SemiBold"
-                               Text="{Binding SelectedSection.Title}"/>
+                               Text="{Binding TranslationProgress, Mode=OneWay, StringFormat={}{0:N1}%}"/>
 
-                    <ListBox Grid.Row="2"
-                             ItemsSource="{Binding Blocks}"
-                             SelectedItem="{Binding SelectedBlock}"
-                             DisplayMemberPath="DisplayName"
-                             BorderBrush="{StaticResource BorderBrush}"/>
-                </Grid>
-            </Border>
+                    <StackPanel Margin="0,38,0,0"
+                                HorizontalAlignment="Center"
+                                Orientation="Horizontal">
+                        <Button Margin="0,0,12,0"
+                                Width="150"
+                                Padding="18,11"
+                                Command="{Binding OpenBookCommand}"
+                                Content="Abrir PDF"/>
 
-            <Border Grid.Column="4"
-                    Background="White"
-                    BorderBrush="{StaticResource BorderBrush}"
-                    BorderThickness="1"
-                    CornerRadius="9"
-                    Padding="18">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="12"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="14"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
+                        <Button Margin="0,0,12,0"
+                                Width="180"
+                                Padding="18,11"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Command="{Binding StartTranslationCommand}"
+                                Content="Traducir / continuar"/>
 
-                    <TextBlock FontSize="17"
-                               FontWeight="SemiBold"
-                               Text="{Binding SelectedBlock.DisplayName}"/>
+                        <Button Margin="0,0,12,0"
+                                Width="120"
+                                Padding="18,11"
+                                Command="{Binding PauseTranslationCommand}"
+                                Content="Pausar"/>
 
-                    <GroupBox Grid.Row="2" Header="Texto original">
-                        <TextBox Margin="8"
-                                 Text="{Binding EditableOriginalText, UpdateSourceTrigger=PropertyChanged}"
-                                 AcceptsReturn="True"
-                                 TextWrapping="Wrap"
-                                 VerticalScrollBarVisibility="Auto"
-                                 BorderThickness="0"/>
-                    </GroupBox>
-
-                    <GroupBox Grid.Row="4" Header="Traducción">
-                        <TextBox Margin="8"
-                                 Text="{Binding EditableTranslatedText, UpdateSourceTrigger=PropertyChanged}"
-                                 AcceptsReturn="True"
-                                 TextWrapping="Wrap"
-                                 VerticalScrollBarVisibility="Auto"
-                                 BorderThickness="0"/>
-                    </GroupBox>
-                </Grid>
+                        <Button Width="120"
+                                Padding="18,11"
+                                Command="{Binding CancelTranslationCommand}"
+                                Content="Cancelar"/>
+                    </StackPanel>
+                </StackPanel>
             </Border>
         </Grid>
 
@@ -198,41 +126,22 @@
                            Foreground="{StaticResource MutedTextBrush}"
                            Text="{Binding StatusMessage}"/>
 
-                <StackPanel Grid.Column="1"
-                            Orientation="Horizontal"
-                            VerticalAlignment="Center">
-                    <ProgressBar Width="120"
-                                 Height="5"
-                                 IsIndeterminate="True">
-                        <ProgressBar.Style>
-                            <Style TargetType="ProgressBar">
-                                <Setter Property="Visibility" Value="Collapsed"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsBusy}" Value="True">
-                                        <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ProgressBar.Style>
-                    </ProgressBar>
-                    <TextBlock Margin="16,0,0,0"
-                               Foreground="#B42318"
-                               FontWeight="SemiBold">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Text" Value=""/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding HasUnsavedChanges}" Value="True">
-                                        <Setter Property="Text" Value="Cambios sin guardar"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
-                </StackPanel>
+                <TextBlock Grid.Column="1"
+                           VerticalAlignment="Center"
+                           Foreground="#B42318"
+                           FontWeight="SemiBold">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Text" Value=""/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsPaused}" Value="True">
+                                    <Setter Property="Text" Value="Pausado · progreso conservado"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
             </Grid>
         </Border>
     </Grid>
 </Window>
-
-

@@ -4,16 +4,19 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
     <AssemblyName>BookTranslatorStudio</AssemblyName>
     <RootNamespace>BookTranslatorStudio</RootNamespace>
     <Platforms>AnyCPU;x64</Platforms>
-    <Version>0.3.0</Version>
+    <Version>0.4.0</Version>
     <Authors>Book Translator Studio</Authors>
     <Product>Book Translator Studio</Product>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="PdfPig" Version="0.1.15" />
+    <PackageReference Include="QuestPDF" Version="2026.7.1" />
   </ItemGroup>
 
 </Project>

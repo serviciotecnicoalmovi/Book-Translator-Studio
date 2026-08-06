@@ -1,33 +1,14 @@
-# Book Translator Studio
+# Book Translator Studio v0.4.0 local
 
-Aplicación WPF para importar, preparar, editar, traducir y exportar libros.
+Flujo:
 
-## Versión actual
+1. Abrir PDF.
+2. Pulsar Traducir / continuar.
+3. La aplicación instala automáticamente Ollama si falta.
+4. Descarga automáticamente TranslateGemma 4B una sola vez.
+5. Traduce localmente y conserva el progreso.
+6. Genera `nombre_traducido.pdf`.
 
-`v0.3.0`
-
-## Resultado funcional
-
-La aplicación permite completar en un solo flujo:
-
-1. Importar un libro PDF.
-2. Extraer todo el texto disponible.
-3. Reconstruir automáticamente una estructura editable.
-4. Navegar por secciones y bloques.
-5. Corregir el texto original.
-6. Preparar o editar la traducción correspondiente.
-7. Guardar el libro como proyecto `.btsproject`.
-8. Cerrar y reabrir el proyecto sin perder información.
-
-## Compilar
-
-```powershell
-dotnet restore
-dotnet build BookTranslatorStudio.sln -c Release
-```
-
-## Ejecutar
-
-```powershell
-dotnet run --project .\src\BookTranslatorStudio.App\BookTranslatorStudio.App.csproj
-```
+No requiere cuenta, clave API ni pagos. Después de descargar el motor y el
+modelo, la traducción funciona sin conexión. Book Translator Studio no impone
+límites de páginas, palabras, bloques o exportaciones.
