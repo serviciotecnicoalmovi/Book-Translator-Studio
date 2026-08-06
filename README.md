@@ -1,10 +1,10 @@
 # Book Translator Studio
 
-Aplicación WPF para cargar, analizar, traducir y exportar libros PDF.
+Aplicación WPF para cargar, extraer, traducir y exportar libros PDF.
 
 ## Versión actual
 
-`v0.1.0`
+`v0.2.0`
 
 ## Requisitos
 
@@ -24,13 +24,14 @@ dotnet build BookTranslatorStudio.sln -c Release
 dotnet run --project .\src\BookTranslatorStudio.App\BookTranslatorStudio.App.csproj
 ```
 
-## Alcance de v0.1.0
+## Alcance de v0.2.0
 
-- Ventana principal WPF.
-- Selección de archivos PDF.
-- Validación básica del encabezado PDF.
-- Lectura de nombre, ruta, tamaño y cantidad estimada de páginas.
-- Registro de errores en `%LocalAppData%\BookTranslatorStudio\Logs`.
-- Arquitectura MVVM sin dependencias externas.
+- Conteo real de páginas con PdfPig.
+- Extracción de texto página por página.
+- Previsualización del texto extraído.
+- Cantidad de páginas con texto y caracteres totales.
+- Identificación inicial de documentos que necesitarán OCR.
+- Lectura asíncrona para mantener la interfaz disponible.
+- Registro de resultados y errores.
 
-La extracción real del texto se incorporará en la siguiente etapa.
+Los PDFs compuestos únicamente por imágenes se marcarán para OCR, capacidad que se incorporará en una etapa posterior.

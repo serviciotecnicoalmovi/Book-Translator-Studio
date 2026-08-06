@@ -3,9 +3,11 @@ using BookTranslatorStudio.Models;
 namespace BookTranslatorStudio.Services;
 
 /// <summary>
-/// Analiza la información básica de un PDF sin modificarlo.
+/// Abre un PDF, obtiene su conteo real de páginas y extrae su texto.
 /// </summary>
 public interface IPdfInspectionService
 {
-    PdfDocumentInfo Inspect(string filePath);
+    Task<PdfDocumentInfo> InspectAsync(
+        string filePath,
+        CancellationToken cancellationToken = default);
 }
