@@ -1,4 +1,4 @@
-<Window x:Class="BookTranslatorStudio.Views.MainWindow"
+﻿<Window x:Class="BookTranslatorStudio.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:viewModels="clr-namespace:BookTranslatorStudio.ViewModels"
@@ -33,7 +33,7 @@
                                Text="Book Translator Studio"/>
                     <TextBlock Margin="0,3,0,0"
                                Foreground="{StaticResource MutedTextBrush}"
-                               Text="Preparación integral de libros para traducción"/>
+                               Text="PreparaciÃ³n integral de libros para traducciÃ³n"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1"
@@ -104,8 +104,8 @@
                             <TextBlock Margin="0,5,0,0"
                                        Foreground="{StaticResource MutedTextBrush}">
                                 <Run Text="{Binding Project.SourcePageCount}"/>
-                                <Run Text=" páginas · "/>
-                                <Run Text="{Binding Project.WordCount, StringFormat=N0}"/>
+                                <Run Text=" pÃ¡ginas Â· "/>
+                                <Run Text="{Binding Project.WordCount, Mode=OneWay, StringFormat=N0}"/>
                                 <Run Text=" palabras"/>
                             </TextBlock>
                         </StackPanel>
@@ -172,7 +172,7 @@
                                  BorderThickness="0"/>
                     </GroupBox>
 
-                    <GroupBox Grid.Row="4" Header="Traducción">
+                    <GroupBox Grid.Row="4" Header="TraducciÃ³n">
                         <TextBox Margin="8"
                                  Text="{Binding EditableTranslatedText, UpdateSourceTrigger=PropertyChanged}"
                                  AcceptsReturn="True"
@@ -234,3 +234,4 @@
         </Border>
     </Grid>
 </Window>
+
