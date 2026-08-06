@@ -122,8 +122,11 @@ public sealed class TranslationCoordinator(
             }
         }
 
+        var detail = lastError?.Message
+            ?? "El motor no devolvió información del error.";
+
         throw new InvalidOperationException(
-            "El motor no completó la traducción.",
+            detail,
             lastError);
     }
 }

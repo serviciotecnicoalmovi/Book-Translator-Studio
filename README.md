@@ -1,23 +1,16 @@
-# Book Translator Studio
+# Book Translator Studio v0.4.0
 
-## v0.4.0 — Traducción completa sin límites internos
+Flujo visible:
 
-Esta versión permite:
+1. Abrir un archivo PDF.
+2. Traducir o continuar.
+3. Pausar cuando sea necesario.
+4. Generar automáticamente `nombre_traducido.pdf`.
 
-- traducir cualquier cantidad de bloques
-- usar perfiles de motor ilimitados
-- definir idiomas mediante nombre y código libres
-- usar OpenAI compatible, Ollama, LibreTranslate o JSON genérico
-- añadir encabezados, URL, modelo, plantilla y ruta de respuesta
-- seleccionar proyecto, sección, bloque, pendientes o errores
-- definir libremente la concurrencia
-- usar reintentos finitos o indefinidos
-- pausar y continuar
-- guardar automáticamente después de cada bloque
-- cerrar y reabrir conservando el avance
-- editar manualmente originales y traducciones
-- decidir si la clave se conserva en el proyecto
+El archivo `.btsproject` se guarda automáticamente en la carpeta de
+recuperación de la aplicación y no es el producto final.
 
-Book Translator Studio no aplica cuotas, límites de páginas, bloques,
-caracteres, pruebas, exportaciones o duración. Los límites externos dependen
-únicamente del motor, servidor, red y equipo elegidos por el usuario.
+La primera exportación PDF conserva el orden de páginas y bloques, genera
+texto seleccionable y mantiene separada cada página original. La reproducción
+exacta de posiciones, tipografías e imágenes del PDF original corresponde a
+una fase posterior de preservación avanzada del diseño.

@@ -21,6 +21,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private readonly IBookPreparationService _bookPreparationService;
     private readonly IBookProjectService _bookProjectService;
     private readonly IApplicationLogger _logger;
+    private readonly TranslatedPdfExporter _pdfExporter;
 
     private BookProject? _project;
     private BookSection? _selectedSection;
@@ -43,6 +44,7 @@ public sealed class MainWindowViewModel : ObservableObject
         _bookPreparationService = new BookPreparationService();
         _bookProjectService = new BookProjectService();
         _logger = new FileApplicationLogger();
+        _pdfExporter = new TranslatedPdfExporter();
 
         Sections = [];
         Blocks = [];
@@ -395,7 +397,7 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         var dialog = new OpenFileDialog
         {
-            Title = "Abrir libro",
+            Title = "Abrir PDF o recuperación",
             Filter =
                 $"Libros y proyectos (*.pdf;*{BookProject.FileExtension})|" +
                 $"*.pdf;*{BookProject.FileExtension}|" +
@@ -448,11 +450,14 @@ public sealed class MainWindowViewModel : ObservableObject
             var document = await _pdfInspectionService
                 .InspectAsync(filePath);
 
+            var project = _bookPreparationService.Prepare(document);
+
             LoadProject(
-                _bookPreparationService.Prepare(document),
-                null);
+                project,
+                BuildRecoveryPath(filePath));
 
             HasUnsavedChanges = true;
+            await AutoSaveAsync();
             StatusMessage =
                 "Libro preparado. Pulsa Traducir / continuar.";
         }
@@ -699,8 +704,28 @@ public sealed class MainWindowViewModel : ObservableObject
             }
             else
             {
+                var outputPath = BuildTranslatedPdfPath(
+                    Project.SourcePdfPath,
+                    Project.Name);
+
                 StatusMessage =
-                    "La traducción del libro terminó correctamente.";
+                    "Generando el PDF traducido...";
+
+                await _pdfExporter.ExportAsync(
+                    Project,
+                    outputPath,
+                    CancellationToken.None);
+
+                StatusMessage =
+                    $"PDF traducido generado: " +
+                    $"{Path.GetFileName(outputPath)}";
+
+                MessageBox.Show(
+                    $"La traducción terminó correctamente.\n\n" +
+                    $"PDF generado:\n{outputPath}",
+                    "Book Translator Studio",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
             }
         }
         catch (OperationCanceledException)
@@ -776,6 +801,59 @@ public sealed class MainWindowViewModel : ObservableObject
         return true;
     }
 
+
+    private static string BuildRecoveryPath(string sourcePdfPath)
+    {
+        var recoveryFolder = Path.Combine(
+            Environment.GetFolderPath(
+                Environment.SpecialFolder.LocalApplicationData),
+            "BookTranslatorStudio",
+            "Recovery");
+
+        Directory.CreateDirectory(recoveryFolder);
+
+        var baseName = string.IsNullOrWhiteSpace(sourcePdfPath)
+            ? $"project-{Guid.NewGuid():N}"
+            : Path.GetFileNameWithoutExtension(sourcePdfPath);
+
+        return Path.Combine(
+            recoveryFolder,
+            $"{baseName}{BookProject.FileExtension}");
+    }
+
+    private static string BuildTranslatedPdfPath(
+        string sourcePdfPath,
+        string projectName)
+    {
+        var sourceFolder =
+            Path.GetDirectoryName(sourcePdfPath);
+
+        if (string.IsNullOrWhiteSpace(sourceFolder) ||
+            !Directory.Exists(sourceFolder))
+        {
+            sourceFolder =
+                Environment.GetFolderPath(
+                    Environment.SpecialFolder.DesktopDirectory);
+        }
+
+        var baseName = string.IsNullOrWhiteSpace(sourcePdfPath)
+            ? projectName
+            : Path.GetFileNameWithoutExtension(sourcePdfPath);
+
+        var outputPath = Path.Combine(
+            sourceFolder,
+            $"{baseName}_traducido.pdf");
+
+        if (!File.Exists(outputPath))
+        {
+            return outputPath;
+        }
+
+        return Path.Combine(
+            sourceFolder,
+            $"{baseName}_traducido_{DateTime.Now:yyyyMMdd_HHmmss}.pdf");
+    }
+
     private void PauseTranslation()
     {
         StatusMessage = "Pausando solicitudes activas...";
@@ -798,9 +876,15 @@ public sealed class MainWindowViewModel : ObservableObject
 
     private async Task<bool> EnsureSavedAsync()
     {
+        if (Project is null)
+        {
+            return false;
+        }
+
         if (string.IsNullOrWhiteSpace(_projectFilePath))
         {
-            return await SaveProjectAsync(true);
+            _projectFilePath =
+                BuildRecoveryPath(Project.SourcePdfPath);
         }
 
         await AutoSaveAsync();

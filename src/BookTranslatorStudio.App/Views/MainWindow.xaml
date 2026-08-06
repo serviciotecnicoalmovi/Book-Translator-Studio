@@ -33,7 +33,7 @@
                                Text="Book Translator Studio"/>
                     <TextBlock Margin="0,4,0,0"
                                Foreground="{StaticResource MutedTextBrush}"
-                               Text="Abrir, traducir y continuar"/>
+                               Text="Abrir PDF, traducir y generar PDF"/>
                 </StackPanel>
 
                 <Border Grid.Column="1"
@@ -88,7 +88,7 @@
                                 Width="150"
                                 Padding="18,11"
                                 Command="{Binding OpenBookCommand}"
-                                Content="Abrir libro"/>
+                                Content="Abrir PDF"/>
 
                         <Button Margin="0,0,12,0"
                                 Width="180"
