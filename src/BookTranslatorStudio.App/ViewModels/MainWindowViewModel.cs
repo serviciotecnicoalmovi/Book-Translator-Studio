@@ -48,6 +48,9 @@ public sealed class MainWindowViewModel : ObservableObject
         Blocks = [];
         EngineProfiles = [];
 
+        OpenBookCommand = new RelayCommand(
+            async _ => await OpenBookAsync(),
+            _ => !IsBusy);
         ImportPdfCommand = new RelayCommand(
             async _ => await ImportPdfAsync(),
             _ => !IsBusy);
@@ -77,6 +80,7 @@ public sealed class MainWindowViewModel : ObservableObject
             _ => Project is not null);
     }
 
+    public ICommand OpenBookCommand { get; }
     public ICommand ImportPdfCommand { get; }
     public ICommand OpenProjectCommand { get; }
     public ICommand SaveProjectCommand { get; }
@@ -385,6 +389,107 @@ public sealed class MainWindowViewModel : ObservableObject
             : $"{Project.TranslatedBlockCount:N0} traducidos · " +
               $"{Project.FailedBlockCount:N0} con error · " +
               $"{Project.BlockCount:N0} totales";
+
+
+    private async Task OpenBookAsync()
+    {
+        var dialog = new OpenFileDialog
+        {
+            Title = "Abrir libro",
+            Filter =
+                $"Libros y proyectos (*.pdf;*{BookProject.FileExtension})|" +
+                $"*.pdf;*{BookProject.FileExtension}|" +
+                "Documentos PDF (*.pdf)|*.pdf|" +
+                $"Proyectos Book Translator Studio (*{BookProject.FileExtension})|" +
+                $"*{BookProject.FileExtension}",
+            CheckFileExists = true,
+            Multiselect = false
+        };
+
+        if (dialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+        var extension = Path.GetExtension(dialog.FileName);
+
+        if (string.Equals(
+                extension,
+                ".pdf",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            await ImportPdfFromPathAsync(dialog.FileName);
+            return;
+        }
+
+        if (string.Equals(
+                extension,
+                BookProject.FileExtension,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            await OpenProjectFromPathAsync(dialog.FileName);
+            return;
+        }
+
+        MessageBox.Show(
+            "El archivo seleccionado no es un PDF ni un proyecto compatible.",
+            "Book Translator Studio",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
+    }
+
+    private async Task ImportPdfFromPathAsync(string filePath)
+    {
+        try
+        {
+            IsBusy = true;
+            StatusMessage = "Preparando el libro completo...";
+
+            var document = await _pdfInspectionService
+                .InspectAsync(filePath);
+
+            LoadProject(
+                _bookPreparationService.Prepare(document),
+                null);
+
+            HasUnsavedChanges = true;
+            StatusMessage =
+                "Libro preparado. Pulsa Traducir / continuar.";
+        }
+        catch (Exception exception)
+        {
+            HandleError("No fue posible importar el libro.", exception);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private async Task OpenProjectFromPathAsync(string filePath)
+    {
+        try
+        {
+            IsBusy = true;
+
+            var project = await _bookProjectService
+                .OpenAsync(filePath);
+
+            NormalizeProject(project);
+            LoadProject(project, filePath);
+            HasUnsavedChanges = false;
+            StatusMessage =
+                "Proyecto abierto. Puedes continuar la traducción.";
+        }
+        catch (Exception exception)
+        {
+            HandleError("No fue posible abrir el proyecto.", exception);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
 
     private async Task ImportPdfAsync()
     {
@@ -885,6 +990,7 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         foreach (var command in new[]
                  {
+                     OpenBookCommand,
                      ImportPdfCommand,
                      OpenProjectCommand,
                      SaveProjectCommand,

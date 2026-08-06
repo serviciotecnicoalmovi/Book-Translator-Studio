@@ -33,7 +33,7 @@
                                Text="Book Translator Studio"/>
                     <TextBlock Margin="0,4,0,0"
                                Foreground="{StaticResource MutedTextBrush}"
-                               Text="Traducción completa del libro"/>
+                               Text="Abrir, traducir y continuar"/>
                 </StackPanel>
 
                 <Border Grid.Column="1"
@@ -87,8 +87,8 @@
                         <Button Margin="0,0,12,0"
                                 Width="150"
                                 Padding="18,11"
-                                Command="{Binding OpenProjectCommand}"
-                                Content="Abrir proyecto"/>
+                                Command="{Binding OpenBookCommand}"
+                                Content="Abrir libro"/>
 
                         <Button Margin="0,0,12,0"
                                 Width="180"
