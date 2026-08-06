@@ -7,7 +7,7 @@
     <AssemblyName>BookTranslatorStudio</AssemblyName>
     <RootNamespace>BookTranslatorStudio</RootNamespace>
     <Platforms>AnyCPU;x64</Platforms>
-    <Version>0.2.0</Version>
+    <Version>0.3.0</Version>
     <Authors>Book Translator Studio</Authors>
     <Product>Book Translator Studio</Product>
   </PropertyGroup>
